@@ -1,0 +1,2610 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dispatch – Invoice & Logbook Demo</title>
+
+    <style>
+      :root{
+        --pad: 12px;
+        --radius: 14px;
+        --black:#111;
+        --border:#e5e7eb;
+        --muted:#6b7280;
+        --bg:#f6f7f8;
+        --card:#fff;
+      }
+      *{ box-sizing:border-box; }
+      html, body{
+        height: 100%;
+      }
+
+      body{
+        margin:0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        background:var(--bg);
+        color:#111;
+        -webkit-font-smoothing:antialiased;
+        text-rendering: optimizeLegibility;
+
+        overflow: hidden;
+        overscroll-behavior-y: none;
+      }
+
+      #pageScroll{
+        position: fixed;
+        top: var(--headerH);
+        left: 0;
+        right: 0;
+        bottom: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: none;
+      }
+
+      header{
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        z-index: 2147483647;
+
+        background: var(--black);
+        color:#fff;
+
+        padding:12px var(--pad);
+        padding-top: calc(12px + env(safe-area-inset-top)); /* notch-safe */
+        padding-left:  calc(var(--pad) + 72px);
+        padding-right: calc(var(--pad) + 72px);
+
+        display:flex;
+        align-items:center;
+        gap:12px;
+
+        border-bottom:1px solid rgba(255,255,255,.08);
+      }
+
+      /* Gear button on far right */
+      /* Gear button (far right) */
+      #gearBtn{
+        position:absolute;
+        right: var(--pad);
+        top: 50%;
+        transform: translateY(-50%);
+        width: 46px;
+        height: 46px;
+        min-width: 46px;
+        min-height: 46px;
+        box-sizing: border-box;
+
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,.18);
+        background: rgba(255,255,255,.06);
+        color: #fff;
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        cursor: pointer;
+
+        -webkit-appearance: none;
+        appearance: none;
+        padding: 0;
+        margin: 0;
+        line-height: 0;
+        font-size: 0;
+      }
+      #gearBtn:hover{ background: rgba(255,255,255,.12); }
+
+      #gearBtn svg{
+        width: 26px;
+        height: 26px;
+        display: block;
+        flex: 0 0 auto;
+        overflow: visible;
+        transform: translateY(0.5px);
+      }
+      #gearBtn svg path{ vector-effect: non-scaling-stroke; }
+
+      /* Hamburger button (far left) */
+      #menuBtn{
+        position:absolute;
+        left: var(--pad);
+        top: 50%;
+        transform: translateY(-50%);
+        width: 46px;
+        height: 46px;
+        min-width: 46px;
+        min-height: 46px;
+        box-sizing: border-box;
+
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,.18);
+        background: rgba(255,255,255,.06);
+        color:#fff;
+
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+
+        cursor:pointer;
+
+        -webkit-appearance:none;
+        appearance:none;
+        padding:0;
+        margin:0;
+        line-height:0;
+        font-size:0;
+      }
+      #menuBtn:hover{ background: rgba(255,255,255,.12); }
+      #menuBtn svg{ width:26px; height:26px; display:block; }
+
+      #menuBtn, #gearBtn { touch-action: manipulation; }
+
+      /* Dropdown menu panel */
+      #menuPanel{
+        position:absolute;
+        left: var(--pad);
+        top: calc(100% + 10px);
+        width: 230px;
+        background:#fff;
+        border:1px solid #e5e7eb;
+        border-radius: 14px;
+        box-shadow: 0 18px 60px rgba(0,0,0,.22);
+        padding: 6px;
+        z-index: 10001;
+        display:none;
+        pointer-events:auto;
+      }
+
+      /* Only allow the dropdown to show on mobile when open */
+      @media(max-width:760px){
+        #menuPanel.open{ display:block; }
+      }
+
+      .menuItem{
+        width:100%;
+        text-align:left;
+        border:0;
+        background:transparent;
+        padding: 10px 10px;
+        border-radius: 10px;
+        font-weight: 900;
+        cursor:pointer;
+      }
+      .menuItem:hover{ background:#f3f4f6; }
+      .menuItem.active{ background:#111; color:#fff; }
+
+      /* show hamburger only on mobile */
+      #menuBtn{ display:none; }
+      @media(max-width:760px){
+        #menuBtn{ display:inline-flex; }
+      }
+
+      /* Settings modal */
+      .modalBackdrop{
+        position:fixed;
+        inset:0;
+        background: rgba(0,0,0,.55);
+        display:none;
+        z-index: 20000;
+        padding: 18px;
+      }
+      .modalBackdrop.open{
+        display:flex;
+        align-items:flex-start;
+        justify-content:center;
+        padding-top: calc(18px + var(--headerH));  /*  always below fixed header */
+      }
+      .modal{
+        width: min(720px, 100%);
+        background: #fff;
+        border-radius: 16px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 18px 60px rgba(0,0,0,.25);
+        overflow:hidden;
+      }
+      .modalHeader{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        padding: 12px 14px;
+        border-bottom: 1px solid #e5e7eb;
+        background:#fafafa;
+      }
+      .modalHeader strong{ font-weight:900; }
+      .modalBody{ padding: 14px; }
+      .modalClose{
+        border:1px solid #d1d5db;
+        background:#fff;
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-weight: 900;
+        cursor:pointer;
+      }
+      details.advanced{
+        margin-top: 10px;
+        border:1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 10px 12px;
+        background:#fff;
+      }
+      details.advanced summary{
+        cursor:pointer;
+        font-weight:900;
+      }
+
+      /* Center the header content (desktop + mobile) */
+      .headerCentered{
+        position: relative;   /* enables absolute gear */
+        justify-content: center;
+      }
+
+      .headerCentered .brand{
+        min-width:auto;           /* remove left anchoring */
+        justify-content:center;
+      }
+
+      .brand{ display:flex; align-items:center; gap:10px; }
+      .brand img{
+        width:60px; height:60px; border-radius:14px; object-fit:cover;
+        border:1px solid rgba(255,255,255,.12);
+        background:#0b0b0b;
+        flex:0 0 auto;
+    }
+      .brand .btxt{ line-height:1.1; }
+      .brand .bname{ font-weight:900; font-size:12px; }
+      .brand .bsub{ font-size:11px; opacity:.85; }
+
+      .headcenter{ flex:1; text-align:center; line-height:1.2; }
+      .headcenter h1{ margin:0; font-size:16px; font-weight:900; letter-spacing:.2px; }
+      .headcenter .sub{ margin-top:2px; font-size:12px; opacity:.85; }
+
+      :root{ --headerH: 0px; } /* will be set by JS */
+
+      main{
+        width: min(1600px, calc(100vw - 32px)); /* wider + responsive */
+        margin: 0 auto;
+        padding: 0 0 16px;
+        padding-top: calc(var(--headerH) + 8px);
+      }
+
+      .tabs{ display:flex; gap:8px; flex-wrap:wrap; margin:0 0 10px; }
+      .tabbtn{
+        border:1px solid #ddd; background:#fff;
+        padding:10px 12px;
+        border-radius:999px;
+        font-weight:900;
+        cursor:pointer;
+        font-size:14px;
+      }
+      .tabbtn.active{ background:#111; color:#fff; border-color:#111; }
+
+      .card{
+        background:var(--card);
+        border:1px solid var(--border);
+        border-radius:var(--radius);
+        padding:14px;
+        box-shadow: 0 1px 0 rgba(0,0,0,.03);
+        margin-bottom:12px;
+      }
+
+      .row{ display:grid; gap:10px; }
+      @media(min-width: 880px){
+        .row.cols2{ grid-template-columns: 1fr 1fr; }
+        .row.cols3{ grid-template-columns: 1fr 1fr 1fr; }
+        .row.cols4{ grid-template-columns: 1fr 1fr 1fr 1fr; }
+      }
+
+      label{ display:block; font-size:12px; font-weight:900; color:#333; margin-bottom:6px; }
+      input, select, textarea{
+        width:100%;
+        padding:12px;
+        border-radius:10px;
+        border:1px solid #d1d5db;
+        background:#fff;
+        font-size:16px;
+        line-height:1.15;
+      }
+      textarea{ min-height:70px; resize:vertical; }
+      .muted{ color:var(--muted); font-size:12px; }
+
+      .actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+      /* Bottom action bars */
+      .actions.actionsBottom button{
+        flex: 1 1 calc(50% - 10px);
+      }
+      .actions.actionsBottom button.primary,
+      .actions.actionsBottom button.danger{
+        flex: 1 1 100%;
+      }
+
+      .bottomBar{
+        margin-top: 12px;
+      }
+      .bottomBarInner{
+        width: min(1600px, calc(100vw - 32px)); /* matches main */
+        margin: 0 auto;
+        padding: 10px 0; /* width already provides side gutters */
+      }
+
+      button{
+        padding:10px 12px;
+        border-radius:12px;
+        border:1px solid #d1d5db;
+        background:#fff;
+        cursor:pointer;
+        font-weight:900;
+        font-size:14px;
+      }
+      button.primary{ background:#111; color:#fff; border-color:#111; }
+      button.danger{ background:#b91c1c; color:#fff; border-color:#b91c1c; }
+      button.ghost{
+        background:transparent;
+        padding:6px 10px;
+        border-radius:999px;
+        font-size:12px;
+      }
+      button:disabled{ opacity:.45; cursor:not-allowed; }
+
+      .kpi{ display:flex; gap:10px; flex-wrap:wrap; }
+      .pill{
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        font-size:12px;
+        padding:5px 10px;
+        border-radius:999px;
+        background:#f3f4f6;
+        border:1px solid var(--border);
+        white-space:nowrap;
+      }
+      .pill strong{ font-weight:900; }
+
+      .warn{ background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; padding:10px; border-radius:12px; font-weight:900; }
+      .ok{ background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; padding:10px; border-radius:12px; font-weight:900; }
+
+      .tablewrap{
+        overflow:auto;
+        border:1px solid var(--border);
+        border-radius:12px;
+      }
+      table{ width:100%; border-collapse:collapse; min-width: 980px; }
+      th, td{ padding:10px; border-bottom:1px solid #eee; vertical-align:top; }
+      th{
+        font-size:12px;
+        text-align:left;
+        background:#fafafa;
+        position:sticky;
+        top:0;
+        z-index:2;
+        white-space:nowrap;
+      }
+      td input, td select{ padding:10px; border-radius:10px; }
+      .right{ text-align:right; }
+      .nowrap{ white-space:nowrap; }
+
+      .w-date{ width:140px; }
+      .w-ticket{ width:110px; }
+      .w-contractor{ width:200px; }
+      .w-route{ width:260px; }
+      .w-basis{ width:220px; }
+      .w-qty{ width:140px; }
+      .w-rate{ width:140px; }
+      .w-total{ width:140px; }
+      .w-actions{ width:170px; }
+
+      .basisGroup{ display:flex; gap:6px; flex-wrap:wrap; }
+      .basisBtn{
+        border:1px solid #d1d5db;
+        background:#fff;
+        border-radius:999px;
+        padding:7px 10px;
+        font-weight:900;
+        font-size:12px;
+        cursor:pointer;
+        line-height:1;
+      }
+      .basisBtn.active{ background:#111; color:#fff; border-color:#111; }
+
+      tr.basis-hours{ background:#ecfeff; }
+      tr.basis-loads{ background:#eef2ff; }
+      tr.basis-tons{ background:#f0fdf4; }
+      tr.basis-hauloffs{ background:#fff7ed; }
+      tr.basis-flat{ background:#f3f4f6; }
+
+      .mobileOnly{ display:none; }
+
+      /* ===================== COMPACT SPACING (desktop + mobile) ===================== */
+      .tabs{ margin: 0 0 8px; }
+
+      .card{
+        padding:12px;
+        margin-bottom:10px;
+      }
+
+      .row{ gap:8px; }
+
+      label{ margin-bottom:4px; }
+
+      input, select, textarea{
+        padding:10px;
+      }
+
+      .actions{ gap:8px; }
+
+      .kpi{ gap:8px; }
+      .pill{ padding:4px 9px; }
+
+      th, td{ padding:8px; }
+      td input, td select{ padding:8px; }
+
+      button{
+        padding:9px 12px;
+      }
+
+      /* shrink the manual spacer divs you used in HTML */
+      div[style*="height:10px"]{ height:6px !important; }
+      div[style*="height:12px"]{ height:8px !important; }
+
+      /* bottom bar tighter */
+      .bottomBar{ margin-top:8px; }
+      .bottomBarInner{ padding:8px 0; }
+
+      @media(max-width:760px){
+
+        html{ overflow: hidden; }
+
+        /* push content down so it doesn't hide under fixed header */
+        main{
+          padding: 8px 10px 130px;
+        }
+
+        .tabs{ display:none; }
+
+        /* Mobile-only: a bit rounder */
+        #gearBtn,
+        #menuBtn{
+        border-radius: 14px;
+      }
+
+        #gearBtn svg,
+        #menuBtn svg{
+          width: 26px;
+          height: 26px;
+          display:block;
+          overflow: visible;
+          transform: translateY(0.5px);
+        }
+
+        #gearBtn svg path{ vector-effect: non-scaling-stroke; }
+
+        .brand{ min-width:auto; gap:8px; }
+        .brand img{ width:44px; height:44px; border-radius:12px; }
+        .brand .bname{ font-size:11px; }
+        .brand .bsub{ font-size:10px; }
+
+        .headcenter h1{ font-size:14px; }
+        .headcenter .sub{ font-size:11px; }
+        .tabbtn{ font-size:13px; padding:9px 11px; }
+        .card{ padding:12px; }
+        .tablewrap{ display:none; }
+        .mobileOnly{ display:block; }
+
+        /* Base mobile grid */
+        .lineGrid{ grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+        .lineGrid > div{ min-width:0; }
+        .lineGrid input{ min-width:0; max-width:100%; }
+        .lineGrid input[type="date"],
+        .lineGrid input[type="time"]{
+          min-width:0;
+          max-width:100%;
+          width:100%;
+        }
+
+        /* Logbook mobile should be single-column */
+        .logGrid{ grid-template-columns: 1fr; }
+
+        .lineCard{
+          border:1px solid var(--border);
+          border-radius:14px;
+          padding:12px;
+          background:#fff;
+          margin-bottom:10px;
+        }
+        .lineCardHeader{
+          display:flex;
+          gap:10px;
+          align-items:center;
+          justify-content:space-between;
+          margin-bottom:10px;
+        }
+        .lineCardHeader .idx{
+          font-weight:900;
+          font-size:12px;
+          color:#111;
+          background:#f3f4f6;
+          border:1px solid var(--border);
+          border-radius:999px;
+          padding:4px 10px;
+        }
+        .lineGrid{
+          display:grid;
+          gap:10px;
+        }
+        .lineGrid .full{ grid-column: 1 / -1; }
+        .lineTotals{
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:10px;
+          margin-top:10px;
+          padding-top:10px;
+          border-top:1px dashed #e5e7eb;
+        }
+        .lineTotals .totalVal{
+          font-weight:900;
+          font-size:16px;
+        }
+        .lineActions{
+          display:flex;
+          gap:8px;
+          flex-wrap:wrap;
+          margin-top:10px;
+        }
+        .lineActions button{ flex:1; }
+        .lineActions button.ghost{ flex:0 0 auto; }
+
+        /* iOS DATE/TIME INPUT FIX */
+        .mobileOnly input[type="date"],
+        .mobileOnly input[type="time"]{
+          -webkit-appearance: none;
+          appearance: none;
+          padding-left: 10px;
+          padding-right: 10px;
+          max-width: 100%;
+          width: 100%;
+        }
+        .mobileOnly input[type="date"]::-webkit-date-and-time-value,
+        .mobileOnly input[type="time"]::-webkit-date-and-time-value{
+          text-align: left;
+        }
+
+        /* Sticky bottom action bar (mobile only) */
+        .bottomBar{
+          position: fixed;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 40;
+          background: var(--bg);
+          border-top: 1px solid #e5e7eb;
+        }
+
+        .bottomBarInner{
+          width: calc(100vw - 20px);  /* matches your mobile main padding (10px + 10px) */
+          margin: 0 auto;
+          padding: 8px 0;
+          padding-bottom: calc(8px + env(safe-area-inset-bottom));
+        }
+
+        .actions.actionsBottom button{
+          padding: 7px 10px;
+          font-size: 13px;
+          border-radius: 12px;
+        }
+
+        .actions.actionsBottom button.primary{
+          flex: 1 1 100%;
+        }
+        .actions.actionsBottom button.danger{
+          flex: 1 1 calc(50% - 10px);
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="headerCentered">
+      <!-- Hamburger (far left) -->
+      <button id="menuBtn" type="button" aria-label="Menu" aria-haspopup="true" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <!-- Dropdown panel -->
+      <div id="menuPanel" class="menuPanel" role="menu" aria-label="Navigation">
+        <button type="button" class="menuItem" data-tab="invoice" role="menuitem">Invoice Sheet</button>
+        <button type="button" class="menuItem" data-tab="logbook" role="menuitem">Driver Logbook</button>
+        <button type="button" class="menuItem" data-tab="photos" role="menuitem">Tickets & Receipts</button>
+      </div>
+
+      <div class="brand">
+        <img src="" alt="Company Logo" />
+        <div class="btxt">
+          <div class="bname">Logistics Dispatch Demo</div>
+          <div class="bsub">Operations Management Prototype</div>
+        </div>
+      </div>
+
+      <!-- Gear button (far right) -->
+      <button id="gearBtn" type="button" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065Z"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+    </header>
+
+    <div id="pageScroll"><main>
+      <div class="tabs">
+        <button class="tabbtn active" data-tab="invoice">Invoice Sheet</button>
+        <button class="tabbtn" data-tab="logbook">Driver Logbook</button>
+        <button class="tabbtn" data-tab="photos">Tickets & Receipts</button>
+      </div>
+
+      <!-- ===================== INVOICE ===================== -->
+      <section id="invoice" class="tab">
+        <div class="card">
+          <div class="row cols3">
+            <div>
+              <label>Driver</label>
+              <input id="inv_driver" placeholder="Driver name" />
+            </div>
+            <div>
+              <label>Truck</label>
+              <input id="inv_truck" placeholder="Truck # / Unit #" />
+            </div>
+            <div>
+              <label>Invoice Week / Notes</label>
+              <input id="inv_week" placeholder="Optional (e.g., Week of 02/12)" />
+            </div>
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div class="row cols2">
+            <div>
+              <label>Contractor / Customer (default)</label>
+              <input id="inv_default_contractor" placeholder="Optional default for new rows" />
+            </div>
+            <div>
+              <label>Location → Destination (default)</label>
+              <input id="inv_default_route" placeholder="Optional (e.g., Yard → Jobsite)" />
+            </div>
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div class="row cols4">
+            <div>
+              <label>% Fee (optional)</label>
+              <input id="inv_fee_pct" type="number" min="0" step="0.01" placeholder="e.g., 10 for 10%" />
+              <div class="muted">Added to subtotal (not deducted).</div>
+            </div>
+
+            <div>
+              <label>Fee applies to</label>
+              <select id="inv_fee_mode">
+                <option value="subtotal">Subtotal (recommended)</option>
+                <option value="hours_only">Hours lines only</option>
+                <option value="loads_only">Non-hours lines only</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Hours Override (optional)</label>
+              <input id="inv_hours_override" type="number" min="0" step="0.01" placeholder="Optional footer hours" />
+            </div>
+
+            <div>
+              <label>8-hour minimum toggle</label>
+              <select id="inv_min8">
+                <option value="off">Off</option>
+                <option value="on">On (if hours &lt; 8, bill 8)</option>
+              </select>
+              <div class="muted">Use only for jobs that require an 8-hour minimum.</div>
+            </div>
+          </div>
+
+          <div class="kpi">
+            <span class="pill">Rows <strong id="kpi_rows">0</strong></span>
+            <span class="pill">Hours <strong id="kpi_hours">0.00</strong></span>
+            <span class="pill">Loads <strong id="kpi_loads">0</strong></span>
+            <span class="pill">Tons <strong id="kpi_tons">0.00</strong></span>
+            <span class="pill">Subtotal <strong id="kpi_subtotal">$0.00</strong></span>
+            <span class="pill">% Fee <strong id="kpi_fee">$0.00</strong></span>
+            <span class="pill">Total Due <strong id="kpi_totaldue">$0.00</strong></span>
+          </div>
+
+          <div class="muted" style="margin-top:10px;">
+            Note: Each line displays the selected Basis (Qty), Rate, and Line Total. The % Fee is added to the subtotal.
+            Mileage belongs in Logbook.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="muted" style="margin-bottom:8px;">
+            Invoice lines (add rows, then export). Exports one CSV with (1) lines and (2) totals below it.
+          </div>
+
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th class="w-date">Date</th>
+                  <th class="w-ticket">Ticket #</th>
+                  <th class="w-contractor">Contractor</th>
+                  <th class="w-route">Location / Destination</th>
+                  <th class="w-basis">Basis</th>
+                  <th class="w-qty right">Qty</th>
+                  <th class="w-rate right">Rate</th>
+                  <th class="w-total right">Total</th>
+                  <th class="w-actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="inv_tbody"></tbody>
+            </table>
+          </div>
+
+          <div id="inv_mobile_list" class="mobileOnly"></div>
+
+          <div style="height:12px"></div>
+
+          <div class="bottomBar">
+            <div class="bottomBarInner">
+              <div class="actions actionsBottom">
+                <button class="primary" id="add_row_btn">+ Add Line</button>
+                <button id="dup_last_btn">Duplicate Last</button>
+                <button class="danger" id="clear_lines_btn">Clear Lines</button>
+                <button id="export_invoice_btn">Export Invoice CSV</button>
+                <button id="email_invoice_btn">Email Accounting (Demo)</button>
+              </div>
+            </div>
+          </div>
+        </div> <!-- closes the Invoice lines card -->
+
+        <div id="inv_validation" class="card" style="display:none;"></div>
+      </section>
+
+      <!-- ===================== LOGBOOK ===================== -->
+      <section id="logbook" class="tab" style="display:none;">
+        <div class="card">
+          <div class="row cols3">
+            <div>
+              <label>Driver</label>
+              <input id="log_driver" placeholder="Driver name" />
+              <div class="muted">Synced with Invoice header.</div>
+            </div>
+            <div>
+              <label>Truck #</label>
+              <input id="log_truck" placeholder="Truck # / Unit #" />
+              <div class="muted">Synced with Invoice header.</div>
+            </div>
+            <div>
+              <label>Notes (optional)</label>
+              <input id="log_notes" placeholder="Optional" />
+            </div>
+          </div>
+          <div class="muted" style="margin-top:10px;">
+            Logbook is for mileage/time proof and documentation. Start/End includes dates for overnight jobs.
+          </div>
+        </div>
+
+        <!-- (removed duplicate logbook card) -->
+
+        <div class="card">
+          <div class="muted" style="margin-bottom:8px;">
+            Log rows (enter start/end, mileage, diesel, hours). Export when ready.
+          </div>
+
+          <div class="tablewrap">
+            <table style="min-width:1180px;">
+              <thead>
+                <tr>
+                  <th>Start Date</th>
+                  <th>Start Time</th>
+                  <th>End Date</th>
+                  <th>End Time</th>
+                  <th>Truck No</th>
+                  <th class="right">Diesel ($)</th>
+                  <th class="right">Mileage Start</th>
+                  <th class="right">Mileage Finish</th>
+                  <th class="right">Total Hours</th>
+                  <th class="right">Total Miles</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="log_tbody"></tbody>
+            </table>
+          </div>
+
+          <div id="log_mobile_list" class="mobileOnly"></div>
+
+          <div style="height:12px"></div>
+
+          <!-- Actions moved UNDER the rows -->
+          <div class="bottomBar">
+            <div class="bottomBarInner">
+              <div class="actions actionsBottom">
+                <button class="primary" id="add_log_row_btn">+ Add Log Row</button>
+                <button class="danger" id="clear_log_btn">Clear Log Rows</button>
+                <button id="export_log_btn">Export Logbook CSV</button>
+                <button id="email_log_btn">Email Accounting (Demo)</button>
+              </div>
+            </div>
+          </div>
+        </div> <!-- closes the Logbook card -->
+
+        <div id="log_validation" class="card" style="display:none;"></div>
+      </section>
+
+      <!-- ===================== PHOTOS ===================== -->
+      <section id="photos" class="tab" style="display:none;">
+        <div class="card">
+          <div class="row cols3">
+            <div>
+              <label>Attach ticket/receipt photo</label>
+              <input id="photo_input" type="file" accept="image/*" capture="environment" />
+              <div class="muted">Saved locally on this device.</div>
+            </div>
+            <div>
+              <label>Tag</label>
+              <input id="photo_tag" placeholder="e.g., Vulcan ticket, Fuel receipt" />
+            </div>
+            <div>
+              <label>Related (optional)</label>
+              <input id="photo_related" placeholder="Ticket # or Date" />
+            </div>
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div class="actions">
+            <button class="primary" id="save_photo_btn">Save Photo</button>
+            <button class="danger" id="clear_photos_btn">Clear Photos</button>
+            <button id="export_photos_index_btn">Export Tickets/Receipts Index CSV</button>
+            <button id="email_photos_btn">Email Accounting (Demo)</button>
+          </div>
+
+          <div class="muted" style="margin-top:10px;">
+            Scan/store receipts and tickets for audits and documentation.
+          </div>
+        </div>
+
+        <div class="card">
+          <div id="photo_grid" class="muted">No photos saved yet.</div>
+          <div class="muted" style="margin-top:10px;">
+            Photos are thumbnails stored in localStorage. Production version should use cloud storage.
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== SETTINGS ===================== -->
+    </main></div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settingsModal" class="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <div class="modal">
+        <div class="modalHeader">
+          <strong id="settingsTitle">Settings</strong>
+          <button class="modalClose" id="settingsCloseBtn" type="button">Close</button>
+        </div>
+
+        <div class="modalBody">
+          <div class="row cols2">
+            <div>
+              <label>Company</label>
+              <input id="set_company" placeholder="Demo Company" />
+            </div>
+            <div>
+              <label>Default currency</label>
+              <select id="set_currency">
+                <option value="USD">USD</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div class="row cols2">
+            <div>
+              <label>Reset everything</label>
+              <button class="danger" id="reset_all_btn" type="button">Reset App Data</button>
+              <div class="muted">Clears invoice lines, logbook, and photos from this browser.</div>
+            </div>
+
+            <div>
+              <!--
+              <details class="advanced">
+                <summary>Advanced (Admin)</summary>
+                <div style="height:10px"></div>
+                <div class="actions">
+                  <button id="backup_btn" type="button">Download Backup JSON</button>
+                  <button id="restore_btn" type="button">Restore Backup JSON</button>
+                  <input id="restore_file" type="file" accept="application/json" style="display:none;" />
+                </div>
+                <div class="muted" style="margin-top:8px;">Use only if you know what you’re doing.</div>
+              </details>
+              -->
+            </div>
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div class="warn" style="font-size:12px;">
+            This version stores data locally in the browser. Next step: enable cloud sync for driver submissions and centralized admin exports.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ======================================================
+         Dispatch Demo – Single-file offline app (drop-in) /
+         FIXES ADDED IN THIS VERSION:
+         - Polyfills for CSS.escape + String.replaceAll (older Safari)
+         - Logbook mobile inputEl now applies step/placeholder
+         - iOS date/time CSS fix added back (mobileOnly)
+         ====================================================== */
+
+      (function polyfills(){
+        // String.prototype.replaceAll (older Safari)
+        if(!String.prototype.replaceAll){
+          String.prototype.replaceAll = function(search, replacement){
+            const target = String(this);
+            const s = String(search);
+            return target.split(s).join(String(replacement));
+          };
+        }
+
+        // CSS.escape (older Safari)
+        if(!(window.CSS && CSS.escape)){
+          window.CSS = window.CSS || {};
+          CSS.escape = function(value){
+            return String(value).replace(/[^a-zA-Z0-9_\-]/g, function(ch){
+              const hex = ch.charCodeAt(0).toString(16).toUpperCase();
+              return "\\" + hex + " ";
+            });
+          };
+        }
+      })();
+
+      const STORAGE_KEY = "dispatch_demo_v1";
+
+      /* ---------- Load + normalize ---------- */
+      const loaded = loadState();
+      const state = normalizeState(loaded) || {
+        settings: { company: "Dispatch Operations Demo", currency: "USD" },
+        invoice: {
+          driver: "",
+          truck: "",
+          week: "",
+          defaultContractor: "",
+          defaultRoute: "",
+          feePct: "",
+          feeMode: "subtotal",
+          hoursOverride: "",
+          min8: "off",
+          lines: []
+        },
+        logbook: { driver: "", truck: "", notes: "", rows: [] },
+        photos: []
+      };
+
+      function normalizeState(obj){
+        if(!obj || typeof obj !== "object") return null;
+
+        // settings
+        if(!obj.settings) obj.settings = { company:"Demo Company", currency:"USD" };
+        if(obj.settings.company === null || obj.settings.company === undefined) obj.settings.company = "Demo Company";
+        if(obj.settings.currency === null || obj.settings.currency === undefined) obj.settings.currency = "USD";
+
+        // invoice
+        if(!obj.invoice) obj.invoice = {};
+        if(obj.invoice.driver === null || obj.invoice.driver === undefined) obj.invoice.driver = "";
+        if(obj.invoice.truck === null || obj.invoice.truck === undefined) obj.invoice.truck = "";
+        if(obj.invoice.week === null || obj.invoice.week === undefined) obj.invoice.week = "";
+        if(obj.invoice.defaultContractor === null || obj.invoice.defaultContractor === undefined) obj.invoice.defaultContractor = "";
+        if(obj.invoice.defaultRoute === null || obj.invoice.defaultRoute === undefined) obj.invoice.defaultRoute = "";
+        if(obj.invoice.feePct === null || obj.invoice.feePct === undefined) obj.invoice.feePct = "";
+        if(obj.invoice.feeMode === null || obj.invoice.feeMode === undefined) obj.invoice.feeMode = "subtotal";
+        if(obj.invoice.hoursOverride === null || obj.invoice.hoursOverride === undefined) obj.invoice.hoursOverride = "";
+        if(obj.invoice.min8 === null || obj.invoice.min8 === undefined) obj.invoice.min8 = "off";
+        if(!obj.invoice.lines) obj.invoice.lines = [];
+
+        // logbook
+        if(!obj.logbook) obj.logbook = {};
+        if(obj.logbook.driver === null || obj.logbook.driver === undefined) obj.logbook.driver = "";
+        if(obj.logbook.truck === null || obj.logbook.truck === undefined) obj.logbook.truck = "";
+        if(obj.logbook.notes === null || obj.logbook.notes === undefined) obj.logbook.notes = "";
+        if(!obj.logbook.rows) obj.logbook.rows = [];
+
+        // ensure manualHours exists
+        obj.logbook.rows.forEach(function(r){
+          if(r.manualHours === null || r.manualHours === undefined) r.manualHours = false;
+        });
+
+        // photos
+        if(!obj.photos) obj.photos = [];
+
+        return obj;
+      }
+
+      function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+      function loadState(){
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); }
+        catch { return null; }
+      }
+
+      function byId(id){ return document.getElementById(id); }
+      function num(n){
+        if(n === null || n === undefined) return 0;
+        const s = String(n).trim();
+        if(!s) return 0;
+        return Number(s.replace(",", ".")) || 0;
+      }
+      function round2(n){ return Math.round((Number(n || 0) + Number.EPSILON) * 100) / 100; }
+      function uid(){ return Math.random().toString(36).slice(2, 10) + Date.now().toString(36); }
+      function escapeHtml(str){
+        return String(str ?? "")
+          .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+          .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+      }
+      function money(n){
+        const v = Number(n || 0);
+        return v.toLocaleString(undefined, { style:"currency", currency: state.settings.currency || "USD" });
+      }
+      function isoDate(d){
+        const y = d.getFullYear();
+        const m = String(d.getMonth()+1).padStart(2,"0");
+        const dd = String(d.getDate()).padStart(2,"0");
+        return `${y}-${m}-${dd}`;
+      }
+      function todayISO(){ return isoDate(new Date()); }
+      function safeFilePart(s){
+        return String(s||"").trim().replace(/[^\w\-]+/g,"_").replace(/_+/g,"_").replace(/^_+|_+$/g,"") || "NA";
+      }
+      function setInputValue(el, v){
+        if(!el) return;
+        const nv = String(v ?? "");
+        if(el.value !== nv) el.value = nv;
+      }
+
+      /* ======================================================
+      Header height → CSS var (--headerH)
+      (Keeps main padding synced to the fixed header height)
+      ====================================================== */
+      function setHeaderH(){
+        const header = document.querySelector("header");
+        const h = header ? Math.ceil(header.getBoundingClientRect().height) : 0;
+        document.documentElement.style.setProperty("--headerH", h + "px");
+      }
+
+      window.addEventListener("load", setHeaderH);
+      window.addEventListener("orientationchange", setHeaderH);
+
+    let resizeT;
+      window.addEventListener("resize", ()=>{
+        clearTimeout(resizeT);
+        resizeT = setTimeout(setHeaderH, 200);
+      });
+
+    setHeaderH();
+    // run again after layout settles (fonts/images)
+    requestAnimationFrame(()=>requestAnimationFrame(setHeaderH));
+
+    // Recalc header height after logo image loads (prevents extra gap on iOS)
+    const logoImg = document.querySelector("header .brand img");
+    if(logoImg){
+      logoImg.addEventListener("load", setHeaderH);
+    }
+
+      /* Settings modal (gear icon) */
+      const gearBtn = document.getElementById("gearBtn");
+      const settingsModal = document.getElementById("settingsModal");
+      const settingsCloseBtn = document.getElementById("settingsCloseBtn");
+
+      function openSettings(){
+        setHeaderH();
+        settingsModal.classList.add("open");
+      }
+      function closeSettings(){
+        settingsModal.classList.remove("open");
+      }
+
+      gearBtn.addEventListener("click", openSettings);
+      settingsCloseBtn.addEventListener("click", closeSettings);
+
+      // click outside modal closes
+      settingsModal.addEventListener("click", (e)=>{
+        if(e.target === settingsModal) closeSettings();
+      });
+
+      // Esc closes
+      document.addEventListener("keydown", (e)=>{
+        if(e.key === "Escape" && settingsModal.classList.contains("open")) closeSettings();
+      });
+
+      /* Tabs (desktop pills + hamburger menu) */
+      function setActiveTab(tab){
+        // desktop pills
+        document.querySelectorAll(".tabbtn").forEach(b=>{
+          b.classList.toggle("active", b.dataset.tab === tab);
+        });
+
+        // show section
+        document.querySelectorAll(".tab").forEach(sec=>sec.style.display="none");
+        document.getElementById(tab).style.display="block";
+
+        // hamburger highlight (if present)
+        document.querySelectorAll("#menuPanel .menuItem").forEach(b=>{
+          b.classList.toggle("active", b.dataset.tab === tab);
+        });
+
+        // close menu if open
+        const mp = document.getElementById("menuPanel");
+        const mb = document.getElementById("menuBtn");
+        if(mp && mb){
+          mp.classList.remove("open");
+          mb.setAttribute("aria-expanded","false");
+        }
+      }
+
+      // Desktop pill clicks
+      document.querySelectorAll(".tabbtn").forEach(btn=>{
+        btn.addEventListener("click", ()=> setActiveTab(btn.dataset.tab));
+      });
+
+      // Hamburger menu wiring
+      const menuBtn = document.getElementById("menuBtn");
+      const menuPanel = document.getElementById("menuPanel");
+
+      if(menuBtn && menuPanel){
+        menuBtn.addEventListener("click", ()=>{
+          const isOpen = menuPanel.classList.toggle("open");
+          menuBtn.setAttribute("aria-expanded", String(isOpen));
+        });
+
+        menuPanel.querySelectorAll(".menuItem").forEach(btn=>{
+          btn.addEventListener("click", ()=> setActiveTab(btn.dataset.tab));
+        });
+
+        // click outside closes
+        document.addEventListener("click", (e)=>{
+          if(!menuPanel.classList.contains("open")) return;
+          if(menuBtn.contains(e.target)) return;
+          if(menuPanel.contains(e.target)) return;
+          menuPanel.classList.remove("open");
+          menuBtn.setAttribute("aria-expanded","false");
+        });
+
+        // Esc closes
+        document.addEventListener("keydown", (e)=>{
+          if(e.key === "Escape"){
+            menuPanel.classList.remove("open");
+            menuBtn.setAttribute("aria-expanded","false");
+          }
+        });
+      }
+
+      /* Debounce validations */
+      let invValidateTimer=null, logValidateTimer=null;
+      function scheduleInvoiceValidation(){
+        if(invValidateTimer) clearTimeout(invValidateTimer);
+        invValidateTimer = setTimeout(()=> renderInvoiceValidation(), 120);
+      }
+      function scheduleLogValidation(){
+        if(logValidateTimer) clearTimeout(logValidateTimer);
+        logValidateTimer = setTimeout(()=> renderLogValidation(), 120);
+      }
+
+      /* ===================== HEADER SYNC (Invoice <-> Logbook) ===================== */
+      const inv_driver = byId("inv_driver");
+      const inv_truck  = byId("inv_truck");
+      const inv_week   = byId("inv_week");
+
+      const log_driver = byId("log_driver");
+      const log_truck  = byId("log_truck");
+      const log_notes  = byId("log_notes");
+
+      let syncingHeaders = false;
+
+      function syncHeaders(from){
+        if(syncingHeaders) return;
+        syncingHeaders = true;
+
+        if(from === "invoice"){
+          state.logbook.driver = state.invoice.driver || "";
+          state.logbook.truck  = state.invoice.truck  || "";
+          setInputValue(log_driver, state.logbook.driver);
+          setInputValue(log_truck,  state.logbook.truck);
+        } else if(from === "logbook"){
+          state.invoice.driver = state.logbook.driver || "";
+          state.invoice.truck  = state.logbook.truck  || "";
+          setInputValue(inv_driver, state.invoice.driver);
+          setInputValue(inv_truck,  state.invoice.truck);
+        }
+
+        saveState();
+        syncingHeaders = false;
+
+        renderInvoiceKPIs();
+        scheduleInvoiceValidation();
+        scheduleLogValidation();
+      }
+
+      /* ===================== INVOICE ===================== */
+      const inv_default_contractor = byId("inv_default_contractor");
+      const inv_default_route      = byId("inv_default_route");
+      const inv_fee_pct            = byId("inv_fee_pct");
+      const inv_fee_mode           = byId("inv_fee_mode");
+      const inv_hours_override     = byId("inv_hours_override");
+      const inv_min8               = byId("inv_min8");
+
+      let prevDefaultContractor = state.invoice.defaultContractor || "";
+      let prevDefaultRoute      = state.invoice.defaultRoute || "";
+
+      function propagateDefaultsToLines(oldVal, newVal, key){
+        if(String(newVal ?? "") === String(oldVal ?? "")) return;
+        state.invoice.lines.forEach(l=>{
+          const cur = String(l[key] ?? "");
+          if(cur.trim()==="" || cur === String(oldVal ?? "")){
+            l[key] = newVal;
+          }
+        });
+      }
+
+      inv_driver.addEventListener("input", e=>{
+        state.invoice.driver = e.target.value;
+        syncHeaders("invoice");
+      });
+      inv_truck.addEventListener("input", e=>{
+        state.invoice.truck = e.target.value;
+        syncHeaders("invoice");
+      });
+      inv_week.addEventListener("input", e=>{ state.invoice.week = e.target.value; saveState(); });
+
+      inv_default_contractor.addEventListener("input", e=>{
+        const newVal = e.target.value;
+        propagateDefaultsToLines(prevDefaultContractor, newVal, "contractor");
+        state.invoice.defaultContractor = newVal;
+        prevDefaultContractor = newVal;
+        saveState();
+        renderInvoice();
+      });
+      inv_default_route.addEventListener("input", e=>{
+        const newVal = e.target.value;
+        propagateDefaultsToLines(prevDefaultRoute, newVal, "route");
+        state.invoice.defaultRoute = newVal;
+        prevDefaultRoute = newVal;
+        saveState();
+        renderInvoice();
+      });
+
+      inv_fee_pct.addEventListener("input", e=>{
+        state.invoice.feePct = e.target.value;
+        saveState();
+        renderInvoiceKPIs(); scheduleInvoiceValidation();
+      });
+      inv_fee_mode.addEventListener("change", e=>{
+        state.invoice.feeMode = e.target.value;
+        saveState();
+        renderInvoiceKPIs(); scheduleInvoiceValidation();
+      });
+      inv_hours_override.addEventListener("input", e=>{
+        state.invoice.hoursOverride = e.target.value;
+        saveState();
+        renderInvoiceKPIs(); scheduleInvoiceValidation();
+      });
+      inv_min8.addEventListener("change", e=>{
+        state.invoice.min8 = e.target.value;
+        saveState();
+        renderInvoice(); scheduleInvoiceValidation();
+      });
+
+      /* Logbook header listeners (bi-directional sync) */
+      log_driver.addEventListener("input", e=>{
+        state.logbook.driver = e.target.value;
+        syncHeaders("logbook");
+      });
+      log_truck.addEventListener("input", e=>{
+        state.logbook.truck = e.target.value;
+        syncHeaders("logbook");
+      });
+      log_notes.addEventListener("input", e=>{
+        state.logbook.notes = e.target.value;
+        saveState();
+      });
+
+      const inv_tbody       = byId("inv_tbody");
+      const inv_mobile_list = byId("inv_mobile_list");
+
+      function defaultNewLine(){
+        return {
+          id: uid(),
+          date: todayISO(),
+          ticket: "",
+          contractor: state.invoice.defaultContractor || "",
+          route: state.invoice.defaultRoute || "",
+          basis: "loads",
+          hauloffs: "",
+          loads: "",
+          tons: "",
+          hours: "",
+          rate: ""
+        };
+      }
+
+      function basisClass(basis){
+        return "basis-" + String(basis||"").toLowerCase();
+      }
+      function clearIrrelevantFields(line){
+        if(line.basis === "hours"){ line.loads=""; line.tons=""; line.hauloffs=""; }
+        else if(line.basis === "loads"){ line.hours=""; line.tons=""; line.hauloffs=""; }
+        else if(line.basis === "tons"){ line.hours=""; line.loads=""; line.hauloffs=""; }
+        else if(line.basis === "hauloffs"){ line.hours=""; line.loads=""; line.tons=""; }
+        else if(line.basis === "flat"){ line.hours=""; line.loads=""; line.tons=""; line.hauloffs=""; }
+      }
+      function basisQty(line){
+        if(line.basis==="hours") return num(line.hours);
+        if(line.basis==="loads") return num(line.loads);
+        if(line.basis==="tons") return num(line.tons);
+        if(line.basis==="hauloffs") return num(line.hauloffs);
+        return 0;
+      }
+      function calcLineTotal(line){
+        const rate = num(line.rate);
+        if(line.basis === "hours"){
+          let qty = num(line.hours);
+          if(state.invoice.min8 === "on" && qty > 0 && qty < 8) qty = 8;
+          return round2(rate * qty);
+        }
+        if(line.basis === "loads") return round2(rate * num(line.loads));
+        if(line.basis === "tons") return round2(rate * num(line.tons));
+        if(line.basis === "hauloffs") return round2(rate * num(line.hauloffs));
+        return round2(rate); // flat
+      }
+      function computeFee(subtotal){
+        const feePct = num(state.invoice.feePct);
+        let feeBase = subtotal;
+
+        if(state.invoice.feeMode === "hours_only"){
+          feeBase = round2(state.invoice.lines
+            .filter(l=>l.basis==="hours")
+            .reduce((a,l)=>a + calcLineTotal(l), 0));
+        } else if(state.invoice.feeMode === "loads_only"){
+          feeBase = round2(state.invoice.lines
+            .filter(l=>l.basis!=="hours")
+            .reduce((a,l)=>a + calcLineTotal(l), 0));
+        }
+
+        const fee = round2(feeBase * (feePct/100));
+        return { feePct, feeBase, fee };
+      }
+
+      function invTdInput(line, key, type, placeholder="", afterChange=null){
+        const td = document.createElement("td");
+        const inp = document.createElement("input");
+        inp.type = type;
+        if(placeholder) inp.placeholder = placeholder;
+        inp.value = line[key] ?? "";
+        inp.addEventListener("input", e=>{
+          line[key] = e.target.value;
+          saveState();
+          if(afterChange) afterChange();
+          renderInvoiceKPIs();
+          scheduleInvoiceValidation();
+        });
+        td.appendChild(inp);
+        return td;
+      }
+      function invTdBasisButtons(line, afterChange){
+        const td = document.createElement("td");
+        const wrap = document.createElement("div");
+        wrap.className = "basisGroup";
+        const opts = [
+          ["hours","Hrs"],
+          ["loads","Loads"],
+          ["tons","Tons"],
+          ["hauloffs","Haul"],
+          ["flat","Flat"]
+        ];
+        opts.forEach(([val,label])=>{
+          const b = document.createElement("button");
+          b.type="button";
+          b.className = "basisBtn" + (line.basis===val ? " active" : "");
+          b.textContent = label;
+          b.addEventListener("click", ()=>{
+            line.basis = val;
+            clearIrrelevantFields(line);
+            saveState();
+            if(afterChange) afterChange();
+            scheduleInvoiceValidation();
+          });
+          wrap.appendChild(b);
+        });
+        td.appendChild(wrap);
+        return td;
+      }
+      function invTdQty(line, afterChange){
+        const td = document.createElement("td");
+        td.className = "right";
+
+        const meta = {
+          hours:   { key:"hours",    step:"0.25", placeholder:"0", aria:"Hours" },
+          loads:   { key:"loads",    step:"1",    placeholder:"0", aria:"Loads" },
+          tons:    { key:"tons",     step:"0.01", placeholder:"0", aria:"Tons" },
+          hauloffs:{ key:"hauloffs", step:"1",    placeholder:"0", aria:"Haul Offs" },
+          flat:    { key:null }
+        }[line.basis] || { key:"loads", step:"1", placeholder:"0", aria:"Loads" };
+
+        if(line.basis === "flat"){
+          td.textContent = "—";
+          td.style.color = "#6b7280";
+          td.style.fontWeight = "900";
+          return td;
+        }
+
+        const inp = document.createElement("input");
+        inp.type = "number";
+        inp.step = meta.step;
+        inp.placeholder = meta.placeholder;
+        inp.value = line[meta.key] ?? "";
+        inp.setAttribute("aria-label", meta.aria);
+
+        inp.addEventListener("input", e=>{
+          line[meta.key] = e.target.value;
+          saveState();
+          if(afterChange) afterChange();
+        });
+
+        td.appendChild(inp);
+        return td;
+      }
+      function invTdRate(line, afterChange){
+        const td = document.createElement("td");
+        td.className = "right";
+        const inp = document.createElement("input");
+        inp.type = "number";
+        inp.step = "0.01";
+        inp.placeholder = "0";
+        inp.value = line.rate ?? "";
+        inp.addEventListener("input", e=>{
+          line.rate = e.target.value;
+          saveState();
+          if(afterChange) afterChange();
+        });
+        td.appendChild(inp);
+        return td;
+      }
+
+      function refreshInvoiceRow(lineId){
+        const line = state.invoice.lines.find(l=>l.id===lineId);
+        if(!line) return;
+
+        const total = calcLineTotal(line);
+
+        // Update desktop row total (no rerender)
+        const tr = inv_tbody.querySelector(`tr[data-line-id="${CSS.escape(lineId)}"]`);
+        if(tr){
+          const totalCell = tr.querySelector('[data-cell="total"]');
+          if(totalCell) totalCell.textContent = money(total);
+        }
+
+        // Update mobile card total (no rerender)
+        const card = inv_mobile_list.querySelector(`.lineCard[data-line-id="${CSS.escape(lineId)}"]`);
+        if(card){
+          const totalEl = card.querySelector('[data-role="line-total"]');
+          if(totalEl) totalEl.textContent = money(total);
+        }
+
+        renderInvoiceKPIs();
+        scheduleInvoiceValidation();
+      }
+
+      function renderInvoiceDesktop(){
+        inv_tbody.innerHTML = "";
+        state.invoice.lines.forEach((line, idx)=>{
+          const tr = document.createElement("tr");
+          tr.setAttribute("data-line-id", line.id);
+          tr.className = basisClass(line.basis);
+
+          tr.appendChild(invTdInput(line, "date", "date", "", ()=> refreshInvoiceRow(line.id)));
+          tr.appendChild(invTdInput(line, "ticket", "text", "Ticket #", ()=> scheduleInvoiceValidation()));
+          tr.appendChild(invTdInput(line, "contractor", "text", "Contractor", ()=> scheduleInvoiceValidation()));
+          tr.appendChild(invTdInput(line, "route", "text", "Location / Destination", ()=> scheduleInvoiceValidation()));
+
+          tr.appendChild(invTdBasisButtons(line, ()=>{
+            tr.className = basisClass(line.basis);
+            saveState();
+            renderInvoice();
+          }));
+
+          tr.appendChild(invTdQty(line, ()=> refreshInvoiceRow(line.id)));
+          tr.appendChild(invTdRate(line, ()=> refreshInvoiceRow(line.id)));
+
+          const tdTotal = document.createElement("td");
+          tdTotal.className = "right";
+          tdTotal.dataset.cell = "total";
+          tdTotal.style.fontWeight = "900";
+          tdTotal.textContent = money(calcLineTotal(line));
+          tr.appendChild(tdTotal);
+
+          const tdAct = document.createElement("td");
+          tdAct.className = "nowrap";
+
+          const up = document.createElement("button");
+          up.className="ghost";
+          up.textContent="Up";
+          up.disabled = idx===0;
+          up.addEventListener("click", ()=>{
+            if(idx===0) return;
+            const arr = state.invoice.lines;
+            [arr[idx-1], arr[idx]] = [arr[idx], arr[idx-1]];
+            saveState();
+            renderInvoice();
+          });
+
+          const down = document.createElement("button");
+          down.className="ghost";
+          down.textContent="Down";
+          down.disabled = idx===state.invoice.lines.length-1;
+          down.addEventListener("click", ()=>{
+            const arr = state.invoice.lines;
+            if(idx>=arr.length-1) return;
+            [arr[idx], arr[idx+1]] = [arr[idx+1], arr[idx]];
+            saveState();
+            renderInvoice();
+          });
+
+          const del = document.createElement("button");
+          del.className="ghost";
+          del.textContent="Delete";
+          del.addEventListener("click", ()=>{
+            state.invoice.lines = state.invoice.lines.filter(x=>x.id !== line.id);
+            saveState();
+            renderInvoice();
+          });
+
+          tdAct.appendChild(up);
+          tdAct.appendChild(down);
+          tdAct.appendChild(del);
+          tr.appendChild(tdAct);
+
+          inv_tbody.appendChild(tr);
+        });
+      }
+
+      function renderInvoiceMobile(){
+        inv_mobile_list.innerHTML = "";
+        if(state.invoice.lines.length === 0){
+          inv_mobile_list.innerHTML = `<div class="muted">No lines yet. Select “Add Line” to get started.</div>`;
+          return;
+        }
+
+        state.invoice.lines.forEach((line, idx)=>{
+          const total = calcLineTotal(line);
+
+          const card = document.createElement("div");
+          card.className = "lineCard";
+          card.setAttribute("data-line-id", line.id); // lets refreshInvoiceRow find this card
+
+          const header = document.createElement("div");
+          header.className = "lineCardHeader";
+          header.innerHTML = `
+            <span class="idx">Line ${idx+1}</span>
+            <span style="font-weight:900">${escapeHtml(String(line.basis||"").toUpperCase())}</span>
+          `;
+          card.appendChild(header);
+
+          const grid = document.createElement("div");
+          grid.className = "lineGrid";
+
+          const dateField = mobileField("Date", inputEl("date", line.date, v=>{ line.date=v; saveState(); scheduleInvoiceValidation(); }));
+          dateField.classList.add("full");
+          grid.appendChild(dateField);
+
+          const ticketField = mobileField("Ticket #", inputEl("text", line.ticket, v=>{ line.ticket=v; saveState(); scheduleInvoiceValidation(); }));
+          ticketField.classList.add("full");
+          grid.appendChild(ticketField);
+
+          grid.appendChild(mobileField("Contractor", inputEl("text", line.contractor, v=>{ line.contractor=v; saveState(); scheduleInvoiceValidation(); })));
+          const routeField = mobileField("Location / Destination", inputEl("text", line.route, v=>{ line.route=v; saveState(); scheduleInvoiceValidation(); }));
+          routeField.classList.add("full");
+          grid.appendChild(routeField);
+
+          const basisWrap = document.createElement("div");
+          basisWrap.className = "full";
+          basisWrap.innerHTML = `<label>Basis</label>`;
+          const bg = document.createElement("div");
+          bg.className = "basisGroup";
+          [["hours","Hrs"],["loads","Loads"],["tons","Tons"],["hauloffs","Haul"],["flat","Flat"]].forEach(([val,lab])=>{
+            const b = document.createElement("button");
+            b.type="button";
+            b.className = "basisBtn" + (line.basis===val ? " active" : "");
+            b.textContent = lab;
+            b.addEventListener("click", ()=>{
+              line.basis = val;
+              clearIrrelevantFields(line);
+              saveState();
+              renderInvoice();
+            });
+            bg.appendChild(b);
+          });
+          basisWrap.appendChild(bg);
+          grid.appendChild(basisWrap);
+
+          const qtyMeta = {
+            hours:   { key:"hours", step:"0.25", placeholder:"0" },
+            loads:   { key:"loads", step:"1",    placeholder:"0" },
+            tons:    { key:"tons",  step:"0.01", placeholder:"0" },
+            hauloffs:{ key:"hauloffs", step:"1", placeholder:"0" },
+            flat:    { key:null, step:"1", placeholder:"" }
+          }[line.basis] || { key:"loads", step:"1", placeholder:"0" };
+
+          if(line.basis === "flat"){
+            grid.appendChild(mobileField("Qty", staticEl("—")));
+          } else {
+            grid.appendChild(mobileField("Qty", inputEl("number", line[qtyMeta.key], v=>{
+              line[qtyMeta.key]=v;
+              saveState();
+              refreshInvoiceRow(line.id);
+            }, { step: qtyMeta.step, placeholder: qtyMeta.placeholder })));
+          }
+
+          grid.appendChild(mobileField("Rate", inputEl("text", line.rate, v=>{
+            line.rate=v;
+            saveState();
+            refreshInvoiceRow(line.id);
+          }, { placeholder:"0.00", inputmode:"decimal", pattern:"[0-9]*[.,]?[0-9]*" })));
+
+          card.appendChild(grid);
+
+          const totals = document.createElement("div");
+          totals.className = "lineTotals";
+          totals.innerHTML = `
+            <div class="muted">Total</div>
+            <div class="totalVal" data-role="line-total">${money(total)}</div>
+          `;
+          card.appendChild(totals);
+
+          const acts = document.createElement("div");
+          acts.className = "lineActions";
+
+          const up = document.createElement("button");
+          up.className = "ghost";
+          up.textContent = "Up";
+          up.disabled = idx===0;
+          up.addEventListener("click", ()=>{
+            if(idx===0) return;
+            const arr = state.invoice.lines;
+            [arr[idx-1], arr[idx]] = [arr[idx], arr[idx-1]];
+            saveState();
+            renderInvoice();
+          });
+
+          const down = document.createElement("button");
+          down.className = "ghost";
+          down.textContent = "Down";
+          down.disabled = idx===state.invoice.lines.length-1;
+          down.addEventListener("click", ()=>{
+            const arr = state.invoice.lines;
+            if(idx>=arr.length-1) return;
+            [arr[idx], arr[idx+1]] = [arr[idx+1], arr[idx]];
+            saveState();
+            renderInvoice();
+          });
+
+          const del = document.createElement("button");
+          del.className = "ghost";
+          del.textContent = "Delete";
+          del.addEventListener("click", ()=>{
+            state.invoice.lines = state.invoice.lines.filter(x=>x.id !== line.id);
+            saveState();
+            renderInvoice();
+          });
+
+          acts.appendChild(up);
+          acts.appendChild(down);
+          acts.appendChild(del);
+
+          card.appendChild(acts);
+          inv_mobile_list.appendChild(card);
+        });
+
+        function mobileField(lbl, controlEl){
+          const wrap = document.createElement("div");
+          wrap.innerHTML = `<label>${escapeHtml(lbl)}</label>`;
+          wrap.appendChild(controlEl);
+          return wrap;
+        }
+        function inputEl(type, value, onChange, extra={}){
+          const el = document.createElement("input");
+          el.type = type;
+          el.value = value ?? "";
+          if(extra.step) el.step = extra.step;
+          if(extra.placeholder) el.placeholder = extra.placeholder;
+
+          // Better mobile keyboard behavior
+          if(extra.inputmode) el.setAttribute("inputmode", extra.inputmode);
+          if(extra.pattern) el.setAttribute("pattern", extra.pattern);
+
+          el.addEventListener("input", ()=> onChange(el.value));
+          el.addEventListener("change", ()=> onChange(el.value));
+          return el;
+        }
+        function staticEl(text){
+          const el = document.createElement("div");
+          el.style.padding = "12px";
+          el.style.border = "1px solid #d1d5db";
+          el.style.borderRadius = "10px";
+          el.style.background = "#fff";
+          el.style.fontWeight = "900";
+          el.style.color = "#6b7280";
+          el.textContent = text;
+          return el;
+        }
+      }
+
+      function renderInvoiceKPIs(){
+        const lines = state.invoice.lines;
+
+        // Hours billed (respects 8-hour minimum toggle)
+        const hoursSumBilled = round2(lines
+          .filter(l=>l.basis==="hours")
+          .reduce((a,l)=>{
+            let h = num(l.hours);
+            if(state.invoice.min8==="on" && h>0 && h<8) h = 8;
+            return a + h;
+          }, 0)
+        );
+
+        const loadsSum = lines.reduce((a,l)=>a + Math.round(num(l.loads)), 0);
+        const tonsSum  = round2(lines.reduce((a,l)=>a + num(l.tons), 0));
+        const subtotal = round2(lines.reduce((a,l)=>a + calcLineTotal(l), 0));
+
+        let hoursForFooter = hoursSumBilled; // use billed hours for KPI display
+        if(String(state.invoice.hoursOverride || "").trim() !== ""){
+          hoursForFooter = round2(num(state.invoice.hoursOverride));
+        }
+
+        const { fee } = computeFee(subtotal);
+        const totalDue = round2(subtotal + fee);
+
+        byId("kpi_rows").textContent = String(lines.length);
+        byId("kpi_hours").textContent = hoursForFooter.toFixed(2);
+        byId("kpi_loads").textContent = String(loadsSum);
+        byId("kpi_tons").textContent = tonsSum.toFixed(2);
+        byId("kpi_subtotal").textContent = money(subtotal);
+        byId("kpi_fee").textContent = money(fee);
+        byId("kpi_totaldue").textContent = money(totalDue);
+      }
+
+      function renderInvoiceValidation(){
+        const box = byId("inv_validation");
+        const msgs = [];
+
+        if(!String(state.invoice.driver||"").trim()) msgs.push("Invoice: Driver is blank.");
+        if(!String(state.invoice.truck||"").trim()) msgs.push("Invoice: Truck is blank.");
+
+        state.invoice.lines.forEach((l,i)=>{
+          const n=i+1;
+          if(!String(l.date||"").trim()) msgs.push(`Line ${n}: Date missing.`);
+          if(!String(l.contractor||"").trim()) msgs.push(`Line ${n}: Contractor missing.`);
+          if(!String(l.route||"").trim()) msgs.push(`Line ${n}: Location/Destination missing.`);
+          if(String(l.rate||"").trim()==="") msgs.push(`Line ${n}: Rate missing.`);
+
+          if(l.basis==="hours" && num(l.hours)<=0) msgs.push(`Line ${n}: Basis is Hours but Qty is 0.`);
+          if(l.basis==="loads" && num(l.loads)<=0) msgs.push(`Line ${n}: Basis is Loads but Qty is 0.`);
+          if(l.basis==="tons" && num(l.tons)<=0) msgs.push(`Line ${n}: Basis is Tons but Qty is 0.`);
+          if(l.basis==="hauloffs" && num(l.hauloffs)<=0) msgs.push(`Line ${n}: Basis is Haul Offs but Qty is 0.`);
+          if(l.basis==="flat" && num(l.rate)<=0) msgs.push(`Line ${n}: Basis is Flat but Rate is 0.`);
+        });
+
+        box.style.display = "block";
+        if(msgs.length===0){
+          box.className = "card ok";
+          box.textContent = "All checks passed.";
+        } else {
+          box.className = "card warn";
+          box.innerHTML =
+            "<div style='font-weight:900; margin-bottom:8px;'>Checks to review</div>" +
+            "<ul style='margin:0; padding-left:18px; font-weight:900;'>" +
+            msgs.map(m=>`<li>${escapeHtml(m)}</li>`).join("") +
+            "</ul>";
+        }
+      }
+
+      function renderInvoice(){
+        renderInvoiceDesktop();
+        renderInvoiceMobile();
+        renderInvoiceKPIs();
+        renderInvoiceValidation();
+      }
+
+      /* Invoice buttons */
+      byId("add_row_btn").addEventListener("click", ()=>{
+        state.invoice.lines.push(defaultNewLine());
+        saveState();
+        renderInvoice();
+      });
+
+      byId("dup_last_btn").addEventListener("click", ()=>{
+        const last = state.invoice.lines[state.invoice.lines.length-1];
+        const nl = defaultNewLine();
+        if(last){
+          Object.assign(nl, {
+            contractor: last.contractor,
+            route: last.route,
+            basis: last.basis,
+            rate: last.rate
+          });
+          if(last.basis==="hours") nl.hours = last.hours;
+          if(last.basis==="loads") nl.loads = last.loads;
+          if(last.basis==="tons") nl.tons = last.tons;
+          if(last.basis==="hauloffs") nl.hauloffs = last.hauloffs;
+        }
+        state.invoice.lines.push(nl);
+        saveState();
+        renderInvoice();
+      });
+
+      byId("clear_lines_btn").addEventListener("click", ()=>{
+        if(!confirm("Clear all invoice lines?")) return;
+        state.invoice.lines = [];
+        saveState();
+        renderInvoice();
+      });
+
+      /* ===================== CSV EXPORT (ONE FILE, TWO TABLES) ===================== */
+      function escapeCSV(v){
+        const s = String(v ?? "");
+        if(/[",\n]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
+        return s;
+      }
+      function csvRow(arr){ return arr.map(escapeCSV).join(","); }
+      function downloadText(filename, text, mime="text/plain;charset=utf-8"){
+        const blob = new Blob([text], { type:mime });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        return filename;
+      }
+      function openEmailToAccounting(subject, body){
+        const to = "accounting@example.com";
+        const url = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        window.location.href = url;
+      }
+
+      function exportInvoiceCSV(){
+        const lines = state.invoice.lines;
+
+        const subtotal = round2(lines.reduce((a,l)=>a + calcLineTotal(l), 0));
+        const { feePct, feeBase, fee } = computeFee(subtotal);
+        const totalDue = round2(subtotal + fee);
+
+        const hoursSumBilled = round2(lines
+          .filter(l=>l.basis==="hours")
+          .reduce((a,l)=>{
+            let h = num(l.hours);
+            if(state.invoice.min8==="on" && h>0 && h<8) h = 8;
+            return a + h;
+          }, 0)
+        );
+
+        let hoursFooter = hoursSumBilled;
+        if(String(state.invoice.hoursOverride||"").trim() !== "") {
+          hoursFooter = round2(num(state.invoice.hoursOverride));
+        }
+
+        const invoiceId = `${safeFilePart(state.invoice.truck||"TRUCK")}_${safeFilePart(state.invoice.driver||"DRIVER")}_${new Date().toISOString().slice(0,10)}`;
+        const fname = `invoice_${invoiceId}.csv`;
+        const exportedAt = new Date().toISOString();
+
+        const out = [];
+
+        out.push(csvRow(["INVOICE LINES"]));
+        out.push(csvRow(["Date","Ticket #","Contractor","Location / Destination","Basis","Qty","Rate","Line Total"]));
+
+        if(lines.length === 0){
+          out.push(csvRow(["","","","","","","",""]));
+        } else {
+          lines.forEach(l=>{
+            const qty = (l.basis==="flat") ? "" : basisQty(l);
+            out.push(csvRow([
+              l.date || "",
+              l.ticket || "",
+              l.contractor || "",
+              l.route || "",
+              l.basis || "",
+              qty === "" ? "" : qty,
+              round2(num(l.rate)).toFixed(2),
+              round2(calcLineTotal(l)).toFixed(2)
+            ]));
+          });
+        }
+
+        out.push("");
+
+        out.push(csvRow(["INVOICE TOTALS"]));
+        out.push(csvRow(["Field","Value"]));
+        out.push(csvRow(["Company", state.settings.company]));
+        out.push(csvRow(["Driver", state.invoice.driver]));
+        out.push(csvRow(["Truck", state.invoice.truck]));
+        out.push(csvRow(["Week / Notes", state.invoice.week]));
+        out.push(csvRow(["Line Count", String(lines.length)]));
+        out.push(csvRow(["Hours Footer", hoursFooter.toFixed(2)]));
+        out.push(csvRow(["Subtotal", subtotal.toFixed(2)]));
+        out.push(csvRow(["Fee %", `${num(feePct)}%`]));
+        out.push(csvRow(["Fee Applies To", state.invoice.feeMode]));
+        out.push(csvRow(["Fee Base", feeBase.toFixed(2)]));
+        out.push(csvRow(["Fee Amount", fee.toFixed(2)]));
+        out.push(csvRow(["Total Due", totalDue.toFixed(2)]));
+        out.push(csvRow(["Exported At", exportedAt]));
+
+        downloadText(fname, out.join("\n"), "text/csv;charset=utf-8");
+        return { invoiceId, fname };
+      }
+
+      byId("export_invoice_btn").addEventListener("click", ()=>{ exportInvoiceCSV(); });
+      byId("email_invoice_btn").addEventListener("click", ()=>{
+        const { invoiceId, fname } = exportInvoiceCSV();
+        const subject = `Invoice Export – ${invoiceId}`;
+        const body =
+`Hi Accounting Team,
+
+I exported the invoice CSV from the Dispatch to Invoice app.
+
+Please attach this file from your Downloads:
+- ${fname}
+
+This file includes:
+1) Invoice Lines table
+2) Invoice Totals table (Subtotal, Fee %, Fee Amount, Total Due) below it
+
+Thanks,`;
+        openEmailToAccounting(subject, body);
+      });
+
+      /* ===================== LOGBOOK ===================== */
+      const log_tbody = byId("log_tbody");
+      const log_mobile_list = byId("log_mobile_list");
+
+      function defaultLogRow(){
+        const d = new Date();
+        return {
+          id: uid(),
+          startDate: isoDate(d),
+          startTime: "",
+          endDate: isoDate(d),
+          endTime: "",
+          truckNo: state.logbook.truck || "",
+          diesel: "",
+          mileageStart: "",
+          mileageFinish: "",
+          totalHours: "",
+          manualHours: false,
+          totalMiles: 0
+        };
+      }
+      function calcMiles(r){
+        const ms = num(r.mileageStart);
+        const mf = num(r.mileageFinish);
+        if(ms>0 && mf>0 && mf>=ms) return round2(mf-ms);
+        return 0;
+      }
+      function calcHoursFromDateTime(r){
+        const sd=String(r.startDate||"").trim();
+        const st=String(r.startTime||"").trim();
+        const ed=String(r.endDate||"").trim();
+        const et=String(r.endTime||"").trim();
+        if(!sd||!st||!ed||!et) return null;
+
+        const start = new Date(`${sd}T${st}:00`);
+        const end   = new Date(`${ed}T${et}:00`);
+        if(isNaN(start.getTime()) || isNaN(end.getTime())) return null;
+
+        const diffMs = end.getTime() - start.getTime();
+        if(diffMs < 0) return null;
+        return round2(diffMs / (1000*60*60));
+      }
+      function logTdInput(row, key, type, placeholder="", afterChange=null){
+        const td = document.createElement("td");
+        const inp = document.createElement("input");
+        inp.type = type;
+        if(placeholder) inp.placeholder = placeholder;
+        inp.value = row[key] ?? "";
+
+        const handle = (e)=>{
+          row[key] = e.target.value;
+          saveState();
+          if(afterChange) afterChange();
+        };
+
+        // input works for typing, change works for date/time pickers
+        inp.addEventListener("input", handle);
+        inp.addEventListener("change", handle);
+
+        td.appendChild(inp);
+        return td;
+      }
+      function logTdRightInput(row, key, type, placeholder="0", step="1", afterChange=null){
+        const td = document.createElement("td");
+        td.className = "right";
+        const inp = document.createElement("input");
+        inp.type = type;
+        inp.placeholder = placeholder;
+        inp.step = step;
+        inp.value = row[key] ?? "";
+        inp.addEventListener("input", e=>{
+          row[key] = e.target.value;
+          saveState();
+          if(afterChange) afterChange();
+        });
+        td.appendChild(inp);
+        return td;
+      }
+      function autoCalcLogHours(r, tr=null, silent=false){
+        const computed = calcHoursFromDateTime(r);
+        if(computed === null) return;
+
+        // Auto-calc ONLY when user has NOT manually typed hours
+        if(r.manualHours) return;
+
+        r.totalHours = computed;
+
+        // Desktop: update the table input if we have a row
+        if(tr){
+          const td = tr.children[8];
+          const inp = td ? td.querySelector("input") : null;
+          if(inp) inp.value = String(computed);
+        }
+
+        saveState();
+        if(!silent) scheduleLogValidation();
+      }
+
+      function updateMilesUI(row, milesTd){
+        row.totalMiles = calcMiles(row);
+        if(milesTd) milesTd.textContent = row.totalMiles.toFixed(2);
+        saveState();
+        scheduleLogValidation();
+      }
+
+      function renderLogbookMobile(){
+        if(!log_mobile_list) return;
+        log_mobile_list.innerHTML = "";
+
+        if(state.logbook.rows.length === 0){
+          log_mobile_list.innerHTML = `<div class="muted">No log rows yet. Select “Add Log Row” to begin.</div>`;
+          return;
+        }
+
+        state.logbook.rows.forEach((r, idx)=>{
+          const card = document.createElement("div");
+          card.className = "lineCard";
+
+          const header = document.createElement("div");
+          header.className = "lineCardHeader";
+          header.innerHTML = `
+            <span class="idx">Row ${idx+1}</span>
+            <span style="font-weight:900">LOG</span>
+          `;
+          card.appendChild(header);
+
+          const grid = document.createElement("div");
+          grid.className = "lineGrid logGrid";
+
+          const milesVal = document.createElement("div");
+          milesVal.style.fontWeight = "900";
+          milesVal.style.fontSize = "16px";
+          milesVal.textContent = calcMiles(r).toFixed(2);
+
+          const hoursInput = inputEl("number", r.totalHours, v=>{
+            r.totalHours = v;
+            r.manualHours = String(v).trim() !== ""; //
+            saveState();
+            scheduleLogValidation();
+          }, { step:"0.25", placeholder:"0" });
+
+          const startDateEl = inputEl("date", r.startDate, v=>{
+            r.startDate = v;
+            autoCalcLogHours(r, null, true);             // recalc (mobile has no tr)
+            hoursInput.value = String(r.totalHours||""); // keep UI synced
+            scheduleLogValidation();
+          });
+
+          const startTimeEl = inputEl("time", r.startTime, v=>{
+            r.startTime = v;
+            autoCalcLogHours(r, null, true);
+            hoursInput.value = String(r.totalHours||"");
+            scheduleLogValidation();
+          });
+
+          const endDateEl = inputEl("date", r.endDate, v=>{
+            r.endDate = v;
+            autoCalcLogHours(r, null, true);
+            hoursInput.value = String(r.totalHours||"");
+            scheduleLogValidation();
+          });
+
+          const endTimeEl = inputEl("time", r.endTime, v=>{
+            r.endTime = v;
+            autoCalcLogHours(r, null, true);
+            hoursInput.value = String(r.totalHours||"");
+            scheduleLogValidation();
+          });
+
+          grid.appendChild(mobileField("Start Date", startDateEl));
+          grid.appendChild(mobileField("Start Time", startTimeEl));
+          grid.appendChild(mobileField("End Date", endDateEl));
+          grid.appendChild(mobileField("End Time", endTimeEl));
+
+          grid.appendChild(mobileField("Truck No", inputEl("text", r.truckNo, v=>{ r.truckNo=v; saveState(); scheduleLogValidation(); }, { placeholder:"Truck #" })));
+          grid.appendChild(mobileField("Diesel ($)", inputEl("number", r.diesel, v=>{ r.diesel=v; saveState(); scheduleLogValidation(); }, { step:"0.01", placeholder:"0" })));
+
+          grid.appendChild(mobileField("Mileage Start", inputEl("number", r.mileageStart, v=>{
+            r.mileageStart = v;
+            updateMilesUI(r, milesVal);
+          }, { step:"1", placeholder:"0" })));
+
+          grid.appendChild(mobileField("Mileage Finish", inputEl("number", r.mileageFinish, v=>{
+            r.mileageFinish = v;
+            updateMilesUI(r, milesVal);
+          }, { step:"1", placeholder:"0" })));
+
+          grid.appendChild(mobileField("Total Hours", hoursInput));
+          grid.appendChild(mobileField("Total Miles", milesVal));
+
+          card.appendChild(grid);
+
+          const acts = document.createElement("div");
+          acts.className = "lineActions";
+
+          const del = document.createElement("button");
+          del.className = "ghost";
+          del.textContent = "Delete";
+          del.addEventListener("click", ()=>{
+            state.logbook.rows = state.logbook.rows.filter(x=>x.id !== r.id);
+            saveState();
+            renderLogbook();
+            renderLogValidation();
+          });
+
+          acts.appendChild(del);
+          card.appendChild(acts);
+
+          log_mobile_list.appendChild(card);
+        });
+
+        function mobileField(lbl, controlEl){
+          const wrap = document.createElement("div");
+          wrap.innerHTML = `<label>${escapeHtml(lbl)}</label>`;
+          wrap.appendChild(controlEl);
+          return wrap;
+        }
+        function inputEl(type, value, onChange, extra={}){
+          const el = document.createElement("input");
+          el.type = type;
+          el.value = value ?? "";
+          if(extra.step) el.step = extra.step;
+          if(extra.placeholder) el.placeholder = extra.placeholder;
+          el.addEventListener("input", ()=> onChange(el.value));
+          el.addEventListener("change", ()=> onChange(el.value));
+          return el;
+        }
+      }
+
+      function renderLogbook(){
+        log_tbody.innerHTML = "";
+
+        state.logbook.rows.forEach((r)=>{
+          r.totalMiles = calcMiles(r);
+          const tr = document.createElement("tr");
+
+          tr.appendChild(logTdInput(r,"startDate","date","", ()=>{
+            autoCalcLogHours(r, tr);
+            scheduleLogValidation();
+          }));
+          tr.appendChild(logTdInput(r,"startTime","time","", ()=>{
+            autoCalcLogHours(r,tr);
+            scheduleLogValidation();
+          }));
+          tr.appendChild(logTdInput(r,"endDate","date","", ()=>{
+            autoCalcLogHours(r,tr);
+            scheduleLogValidation();
+          }));
+          tr.appendChild(logTdInput(r,"endTime","time","", ()=>{
+            autoCalcLogHours(r,tr);
+            scheduleLogValidation();
+          }));
+
+          tr.appendChild(logTdInput(r,"truckNo","text","Truck #", ()=> scheduleLogValidation()));
+          tr.appendChild(logTdRightInput(r,"diesel","number","0","0.01", ()=> scheduleLogValidation()));
+
+          const milesTd = document.createElement("td");
+          milesTd.className="right";
+          milesTd.style.fontWeight="900";
+          milesTd.textContent = calcMiles(r).toFixed(2);
+
+          {
+            const td = document.createElement("td");
+            td.className = "right";
+            const inp = document.createElement("input");
+            inp.type = "number";
+            inp.step = "1";
+            inp.placeholder = "0";
+            inp.value = r.mileageStart ?? "";
+            inp.addEventListener("input", (e)=>{
+              r.mileageStart = e.target.value;
+              updateMilesUI(r, milesTd);
+            });
+            td.appendChild(inp);
+            tr.appendChild(td);
+          }
+
+          {
+            const td = document.createElement("td");
+            td.className = "right";
+            const inp = document.createElement("input");
+            inp.type = "number";
+            inp.step = "1";
+            inp.placeholder = "0";
+            inp.value = r.mileageFinish ?? "";
+            inp.addEventListener("input", (e)=>{
+              r.mileageFinish = e.target.value;
+              updateMilesUI(r, milesTd);
+            });
+            td.appendChild(inp);
+            tr.appendChild(td);
+          }
+
+          {
+            const td = document.createElement("td");
+            td.className = "right";
+            const inp = document.createElement("input");
+            inp.type = "number";
+            inp.step = "0.25";
+            inp.placeholder = "0";
+            inp.value = r.totalHours ?? "";
+
+            inp.addEventListener("input", (e)=>{
+              r.totalHours = e.target.value;
+
+              // if user types anything -> manual override ON
+              // if user clears it -> manual override OFF (auto resumes)
+              r.manualHours = String(e.target.value).trim() !== "";
+
+              saveState();
+              scheduleLogValidation();
+            });
+
+            td.appendChild(inp);
+            tr.appendChild(td);
+          }
+
+          tr.appendChild(milesTd);
+
+          const actTd = document.createElement("td");
+          const del = document.createElement("button");
+          del.className="ghost";
+          del.textContent="Delete";
+          del.addEventListener("click", ()=>{
+            state.logbook.rows = state.logbook.rows.filter(x=>x.id !== r.id);
+            saveState();
+            renderLogbook();
+            renderLogValidation();
+          });
+          actTd.appendChild(del);
+          tr.appendChild(actTd);
+
+          log_tbody.appendChild(tr);
+          autoCalcLogHours(r,tr,true);
+        });
+
+        renderLogbookMobile();
+        renderLogValidation();
+      }
+
+      function renderLogValidation(){
+        const box = byId("log_validation");
+        const msgs = [];
+
+        if(!String(state.logbook.driver||"").trim()) msgs.push("Logbook: Driver is blank.");
+        if(!String(state.logbook.truck||"").trim()) msgs.push("Logbook: Truck # is blank.");
+
+        state.logbook.rows.forEach((r,i)=>{
+          const n=i+1;
+          if(!String(r.truckNo||"").trim()) msgs.push(`Row ${n}: Truck No missing.`);
+          const ms=num(r.mileageStart), mf=num(r.mileageFinish);
+          if((ms && mf) && mf < ms) msgs.push(`Row ${n}: Mileage Finish < Mileage Start.`);
+
+          const computed = calcHoursFromDateTime(r);
+          if(computed === null){
+            const any = [r.startDate,r.startTime,r.endDate,r.endTime].some(x=>String(x||"").trim()!=="");
+            const all = [r.startDate,r.startTime,r.endDate,r.endTime].every(x=>String(x||"").trim()!=="");
+            if(any && !all) msgs.push(`Row ${n}: Fill all Start/End date+time to auto-calc hours (or type Total Hours).`);
+            if(all && computed === null) msgs.push(`Row ${n}: Start/End time range invalid (end before start).`);
+          }
+        });
+
+        box.style.display="block";
+        if(msgs.length===0){
+          box.className="card ok";
+          box.textContent="All checks passed.";
+        } else {
+          box.className="card warn";
+          box.innerHTML =
+            "<div style='font-weight:900; margin-bottom:8px;'>Checks to review</div>" +
+            "<ul style='margin:0; padding-left:18px; font-weight:900;'>" +
+            msgs.map(m=>`<li>${escapeHtml(m)}</li>`).join("") + "</ul>";
+        }
+      }
+
+      byId("add_log_row_btn").addEventListener("click", ()=>{
+        syncHeaders("invoice");
+        state.logbook.rows.push(defaultLogRow());
+        saveState();
+        renderLogbook();
+      });
+      byId("clear_log_btn").addEventListener("click", ()=>{
+        if(!confirm("Clear all logbook rows?")) return;
+        state.logbook.rows = [];
+        saveState();
+        renderLogbook();
+      });
+
+      /* Logbook CSV helpers */
+      function toCSV(rows){
+        if(!rows || rows.length===0) return "";
+        const headers = Object.keys(rows[0]);
+        const esc = (v)=>{
+          const s = String(v ?? "");
+          if(/[",\n]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
+          return s;
+        };
+        const out = [];
+        out.push(headers.map(esc).join(","));
+        rows.forEach(r=> out.push(headers.map(h=>esc(r[h])).join(",")));
+        return out.join("\n");
+      }
+      function downloadCSV(filename, rows){
+        const csv = toCSV(rows);
+        const blob = new Blob([csv], { type:"text/csv;charset=utf-8" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        return filename;
+      }
+      function exportLogbookCSV(){
+        const rows = state.logbook.rows.map((r,i)=>({
+          driver: state.logbook.driver,
+          truck_header: state.logbook.truck,
+          row_no: i+1,
+          start_date: r.startDate,
+          start_time: r.startTime,
+          end_date: r.endDate,
+          end_time: r.endTime,
+          truck_no: r.truckNo,
+          diesel: round2(num(r.diesel)).toFixed(2),
+          mileage_start: num(r.mileageStart),
+          mileage_finish: num(r.mileageFinish),
+          total_hours: String(r.totalHours||"").trim()==="" ? "" : round2(num(r.totalHours)).toFixed(2),
+          total_miles: calcMiles(r).toFixed(2),
+          notes: state.logbook.notes
+        }));
+        const fname = `logbook_${safeFilePart(state.logbook.truck||"TRUCK")}_${new Date().toISOString().slice(0,10)}.csv`;
+        downloadCSV(fname, rows);
+        return fname;
+      }
+      byId("export_log_btn").addEventListener("click", ()=>{ exportLogbookCSV(); });
+      byId("email_log_btn").addEventListener("click", ()=>{
+        const fname = exportLogbookCSV();
+        const subject = `Logbook Export – ${state.logbook.truck||"TRUCK"} – ${new Date().toISOString().slice(0,10)}`;
+        const body =
+`Hi Accounting Team,
+
+I exported the Driver Logbook CSV from the Dispatch to Invoice app.
+
+Please attach this file from your Downloads:
+- ${fname}
+
+Thanks,`;
+        openEmailToAccounting(subject, body);
+      });
+
+      /* ===================== PHOTOS ===================== */
+      const photo_input   = byId("photo_input");
+      const photo_tag     = byId("photo_tag");
+      const photo_related = byId("photo_related");
+
+      function fileToDataURL(file){
+        return new Promise((resolve,reject)=>{
+          const reader = new FileReader();
+          reader.onload = ()=> resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+      function renderPhotos(){
+        const grid = byId("photo_grid");
+        if(state.photos.length===0){
+          grid.className="muted";
+          grid.textContent="No photos saved yet.";
+          return;
+        }
+        grid.className="";
+        grid.innerHTML = "";
+        state.photos.forEach(p=>{
+          const wrap = document.createElement("div");
+          wrap.style.border="1px solid #e5e7eb";
+          wrap.style.borderRadius="12px";
+          wrap.style.overflow="hidden";
+          wrap.style.marginBottom="10px";
+          wrap.style.background="#fff";
+
+          const img = document.createElement("img");
+          img.src = p.dataUrl;
+          img.style.width="100%";
+          img.style.height="160px";
+          img.style.objectFit="cover";
+          wrap.appendChild(img);
+
+          const meta = document.createElement("div");
+          meta.style.padding="10px";
+          meta.innerHTML = `<div style="font-weight:900;">${escapeHtml(p.tag||"Untitled")}</div><div class="muted">${escapeHtml(p.related||"")}</div>`;
+          wrap.appendChild(meta);
+
+          const btn = document.createElement("button");
+          btn.className="ghost";
+          btn.textContent="Delete";
+          btn.style.margin="10px";
+          btn.addEventListener("click", ()=>{
+            state.photos = state.photos.filter(x=>x.id!==p.id);
+            saveState();
+            renderPhotos();
+          });
+          wrap.appendChild(btn);
+
+          grid.appendChild(wrap);
+        });
+      }
+
+      byId("save_photo_btn").addEventListener("click", async ()=>{
+        const file = photo_input.files && photo_input.files[0];
+        if(!file){ alert("Choose a photo first."); return; }
+        const dataUrl = await fileToDataURL(file);
+
+        state.photos.unshift({
+          id: uid(),
+          createdAt: new Date().toISOString(),
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          tag: photo_tag.value.trim(),
+          related: photo_related.value.trim(),
+          dataUrl
+        });
+        if(state.photos.length>50) state.photos = state.photos.slice(0,50);
+
+        saveState();
+        photo_input.value="";
+        photo_tag.value="";
+        photo_related.value="";
+        renderPhotos();
+      });
+
+      byId("clear_photos_btn").addEventListener("click", ()=>{
+        if(!confirm("Clear all saved photos on this device?")) return;
+        state.photos = [];
+        saveState();
+        renderPhotos();
+      });
+
+      function exportPhotosIndexCSV(){
+        const rows = state.photos.map(p=>({
+          id: p.id,
+          created_at: p.createdAt,
+          tag: p.tag,
+          related: p.related,
+          filename: p.name,
+          mime: p.type,
+          bytes: p.size
+        }));
+        const fname = `tickets_receipts_index_${new Date().toISOString().slice(0,10)}.csv`;
+        downloadCSV(fname, rows);
+        return fname;
+      }
+      byId("export_photos_index_btn").addEventListener("click", ()=>{ exportPhotosIndexCSV(); });
+      byId("email_photos_btn").addEventListener("click", ()=>{
+        const fname = exportPhotosIndexCSV();
+        const subject = `Tickets/Receipts Index – ${new Date().toISOString().slice(0,10)}`;
+        const body =
+`Hi Accounting Team,
+
+I exported the Tickets & Receipts index CSV from the Dispatch to Invoice app.
+
+Please attach this file from your Downloads:
+- ${fname}
+
+(Photos are stored locally on the device in this version.)
+
+Thanks,`;
+        openEmailToAccounting(subject, body);
+      });
+
+      /* ===================== SETTINGS ===================== */
+      byId("set_company").addEventListener("input", e=>{
+        state.settings.company = e.target.value;
+        saveState();
+      });
+      byId("set_currency").addEventListener("change", e=>{
+        state.settings.currency = e.target.value;
+        saveState();
+        renderInvoice();
+      });
+
+      byId("reset_all_btn").addEventListener("click", ()=>{
+        if(!confirm("Reset all app data? This cannot be undone.")) return;
+        localStorage.removeItem(STORAGE_KEY);
+        location.reload();
+      });
+
+      /* ===================== HYDRATE + INIT ===================== */
+      function hydrateUI(){
+        setInputValue(inv_driver, state.invoice.driver || "");
+        setInputValue(inv_truck,  state.invoice.truck  || "");
+        setInputValue(inv_week,   state.invoice.week   || "");
+        setInputValue(inv_default_contractor, state.invoice.defaultContractor || "");
+        setInputValue(inv_default_route,      state.invoice.defaultRoute      || "");
+        setInputValue(inv_fee_pct,            state.invoice.feePct            || "");
+        setInputValue(inv_fee_mode,           state.invoice.feeMode           || "subtotal");
+        setInputValue(inv_hours_override,     state.invoice.hoursOverride     || "");
+        setInputValue(inv_min8,               state.invoice.min8              || "off");
+
+        setInputValue(byId("set_company"),  state.settings.company  || "Demo Company");
+        setInputValue(byId("set_currency"), state.settings.currency || "USD");
+
+        syncHeaders("invoice");
+        setInputValue(log_notes, state.logbook.notes || "");
+
+        prevDefaultContractor = state.invoice.defaultContractor || "";
+        prevDefaultRoute      = state.invoice.defaultRoute || "";
+
+        renderInvoice();
+        renderLogbook();
+        renderPhotos();
+      }
+
+      hydrateUI();
+      saveState();
+
+      // Seed lines if empty (first run only)
+      if(state.invoice.lines.length === 0){
+        state.invoice.lines.push(defaultNewLine());
+        saveState();
+        renderInvoice();
+      }
+    </script>
+  </body>
+</html>
