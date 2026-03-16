@@ -3009,10 +3009,13 @@ FEM Trucking
 San Antonio & Surrounding Areas`;
 
         // Generate PDF as a File object for sharing
-        const pdfFile = generateAuthorizationPDF(Object.assign({}, a, { _returnFile: true }));
+        var pdfFile = null;
+        try {
+          pdfFile = generateAuthorizationPDF(Object.assign({}, a, { _returnFile: true }));
+        } catch(e){ /* PDF generation failed, will use fallback */ }
 
         // Try Web Share API (works on iPhone, Android, modern browsers)
-        if(navigator.canShare && navigator.canShare({ files: [pdfFile] })){
+        if(pdfFile && navigator.canShare && navigator.canShare({ files: [pdfFile] })){
           navigator.share({
             title: subject,
             text: body,
@@ -3029,15 +3032,21 @@ San Antonio & Surrounding Areas`;
         }
 
         function fallbackMailto(){
-          // Download the PDF separately
+          // Download the PDF first
           generateAuthorizationPDF(a);
-          // Open email draft
-          const url = `mailto:${encodeURIComponent(a.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-          window.location.href = url;
+          // Delay mailto so the PDF download doesn't get killed
+          setTimeout(function(){
+            const url = `mailto:${encodeURIComponent(a.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = url;
+          }, 500);
         }
       }
 
       function generateAuthorizationPDF(a){
+        if(!window.jspdf || !window.jspdf.jsPDF){
+          alert("PDF library is still loading. Please wait a moment and try again.");
+          return null;
+        }
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'pt', 'letter');
         const pageW = doc.internal.pageSize.getWidth();
