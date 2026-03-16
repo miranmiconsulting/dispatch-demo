@@ -3,17 +3,22 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Dispatch – Invoice & Logbook Demo</title>
+    <title>FEM Trucking – San Antonio & Surrounding Areas</title>
 
     <style>
       :root{
         --pad: 12px;
-        --radius: 14px;
-        --black:#111;
-        --border:#e5e7eb;
-        --muted:#6b7280;
-        --bg:#f6f7f8;
-        --card:#fff;
+        --radius: 16px;
+        --primary-dark: #1b1b2f;
+        --primary-red: #c0392b;
+        --hover-red: #a93226;
+        --light-red-tint: #fdf2f0;
+        --bg: #f0f2f5;
+        --card: #ffffff;
+        --border: #e0e3e8;
+        --muted: #6b7280;
+        --success-green: #059669;
+        --warning-orange: #d97706;
       }
       *{ box-sizing:border-box; }
       html, body{
@@ -51,11 +56,11 @@
         width: 100%;
         z-index: 2147483647;
 
-        background: var(--black);
+        background: var(--primary-dark);
         color:#fff;
 
         padding:12px var(--pad);
-        padding-top: calc(12px + env(safe-area-inset-top)); /* notch-safe */
+        padding-top: calc(12px + env(safe-area-inset-top));
         padding-left:  calc(var(--pad) + 72px);
         padding-right: calc(var(--pad) + 72px);
 
@@ -63,11 +68,9 @@
         align-items:center;
         gap:12px;
 
-        border-bottom:1px solid rgba(255,255,255,.08);
+        border-bottom: 3px solid var(--primary-red);
       }
 
-      /* Gear button on far right */
-      /* Gear button (far right) */
       #gearBtn{
         position:absolute;
         right: var(--pad);
@@ -79,9 +82,9 @@
         min-height: 46px;
         box-sizing: border-box;
 
-        border-radius: 10px;
-        border: 1px solid rgba(255,255,255,.18);
-        background: rgba(255,255,255,.06);
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,.2);
+        background: rgba(255,255,255,.08);
         color: #fff;
 
         display: inline-flex;
@@ -96,8 +99,9 @@
         margin: 0;
         line-height: 0;
         font-size: 0;
+        transition: background 0.2s;
       }
-      #gearBtn:hover{ background: rgba(255,255,255,.12); }
+      #gearBtn:hover{ background: rgba(255,255,255,.15); }
 
       #gearBtn svg{
         width: 26px;
@@ -109,7 +113,6 @@
       }
       #gearBtn svg path{ vector-effect: non-scaling-stroke; }
 
-      /* Hamburger button (far left) */
       #menuBtn{
         position:absolute;
         left: var(--pad);
@@ -121,9 +124,9 @@
         min-height: 46px;
         box-sizing: border-box;
 
-        border-radius: 10px;
-        border: 1px solid rgba(255,255,255,.18);
-        background: rgba(255,255,255,.06);
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,.2);
+        background: rgba(255,255,255,.08);
         color:#fff;
 
         display:inline-flex;
@@ -138,29 +141,28 @@
         margin:0;
         line-height:0;
         font-size:0;
+        transition: background 0.2s;
       }
-      #menuBtn:hover{ background: rgba(255,255,255,.12); }
+      #menuBtn:hover{ background: rgba(255,255,255,.15); }
       #menuBtn svg{ width:26px; height:26px; display:block; }
 
       #menuBtn, #gearBtn { touch-action: manipulation; }
 
-      /* Dropdown menu panel */
       #menuPanel{
         position:absolute;
         left: var(--pad);
         top: calc(100% + 10px);
         width: 230px;
         background:#fff;
-        border:1px solid #e5e7eb;
+        border:1px solid var(--border);
         border-radius: 14px;
-        box-shadow: 0 18px 60px rgba(0,0,0,.22);
+        box-shadow: 0 8px 24px rgba(0,0,0,.12);
         padding: 6px;
         z-index: 10001;
         display:none;
         pointer-events:auto;
       }
 
-      /* Only allow the dropdown to show on mobile when open */
       @media(max-width:760px){
         #menuPanel.open{ display:block; }
       }
@@ -174,17 +176,16 @@
         border-radius: 10px;
         font-weight: 900;
         cursor:pointer;
+        transition: background 0.2s;
       }
       .menuItem:hover{ background:#f3f4f6; }
-      .menuItem.active{ background:#111; color:#fff; }
+      .menuItem.active{ background: var(--primary-red); color:#fff; }
 
-      /* show hamburger only on mobile */
       #menuBtn{ display:none; }
       @media(max-width:760px){
         #menuBtn{ display:inline-flex; }
       }
 
-      /* Settings modal */
       .modalBackdrop{
         position:fixed;
         inset:0;
@@ -197,61 +198,53 @@
         display:flex;
         align-items:flex-start;
         justify-content:center;
-        padding-top: calc(18px + var(--headerH));  /*  always below fixed header */
+        padding-top: calc(18px + var(--headerH));
       }
       .modal{
         width: min(720px, 100%);
         background: #fff;
         border-radius: 16px;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 18px 60px rgba(0,0,0,.25);
+        border: 1px solid var(--border);
+        box-shadow: 0 18px 60px rgba(0,0,0,.15);
         overflow:hidden;
       }
       .modalHeader{
         display:flex;
         align-items:center;
         justify-content:space-between;
-        padding: 12px 14px;
-        border-bottom: 1px solid #e5e7eb;
-        background:#fafafa;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--border);
+        background: var(--primary-dark);
+        color: #fff;
       }
       .modalHeader strong{ font-weight:900; }
-      .modalBody{ padding: 14px; }
+      .modalBody{ padding: 18px; }
       .modalClose{
-        border:1px solid #d1d5db;
-        background:#fff;
+        border:1px solid rgba(255,255,255,.3);
+        background: rgba(255,255,255,.1);
+        color: #fff;
         border-radius: 10px;
-        padding: 8px 10px;
+        padding: 8px 12px;
         font-weight: 900;
         cursor:pointer;
+        transition: background 0.2s;
       }
-      details.advanced{
-        margin-top: 10px;
-        border:1px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 10px 12px;
-        background:#fff;
-      }
-      details.advanced summary{
-        cursor:pointer;
-        font-weight:900;
-      }
+      .modalClose:hover{ background: rgba(255,255,255,.2); }
 
-      /* Center the header content (desktop + mobile) */
       .headerCentered{
-        position: relative;   /* enables absolute gear */
+        position: relative;
         justify-content: center;
       }
 
       .headerCentered .brand{
-        min-width:auto;           /* remove left anchoring */
+        min-width:auto;
         justify-content:center;
       }
 
       .brand{ display:flex; align-items:center; gap:10px; }
       .brand img{
-        width:60px; height:60px; border-radius:14px; object-fit:cover;
-        border:1px solid rgba(255,255,255,.12);
+        width:60px; height:60px; border-radius:12px; object-fit:cover;
+        border:1px solid rgba(255,255,255,.15);
         background:#0b0b0b;
         flex:0 0 auto;
     }
@@ -263,10 +256,10 @@
       .headcenter h1{ margin:0; font-size:16px; font-weight:900; letter-spacing:.2px; }
       .headcenter .sub{ margin-top:2px; font-size:12px; opacity:.85; }
 
-      :root{ --headerH: 0px; } /* will be set by JS */
+      :root{ --headerH: 0px; }
 
       main{
-        width: min(1600px, calc(100vw - 32px)); /* wider + responsive */
+        width: min(1600px, calc(100vw - 32px));
         margin: 0 auto;
         padding: 0 0 16px;
         padding-top: calc(var(--headerH) + 8px);
@@ -274,21 +267,23 @@
 
       .tabs{ display:flex; gap:8px; flex-wrap:wrap; margin:0 0 10px; }
       .tabbtn{
-        border:1px solid #ddd; background:#fff;
-        padding:10px 12px;
+        border:1px solid var(--border); background:#fff;
+        padding:10px 14px;
         border-radius:999px;
         font-weight:900;
         cursor:pointer;
         font-size:14px;
+        transition: all 0.2s;
       }
-      .tabbtn.active{ background:#111; color:#fff; border-color:#111; }
+      .tabbtn:hover{ border-color: var(--primary-red); color: var(--primary-red); }
+      .tabbtn.active{ background: var(--primary-red); color:#fff; border-color: var(--primary-red); }
 
       .card{
         background:var(--card);
         border:1px solid var(--border);
         border-radius:var(--radius);
-        padding:14px;
-        box-shadow: 0 1px 0 rgba(0,0,0,.03);
+        padding:16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.06);
         margin-bottom:12px;
       }
 
@@ -304,17 +299,22 @@
         width:100%;
         padding:12px;
         border-radius:10px;
-        border:1px solid #d1d5db;
+        border:1px solid var(--border);
         background:#fff;
         font-size:16px;
         line-height:1.15;
+        transition: border-color 0.2s;
+      }
+      input:focus, select:focus, textarea:focus{
+        outline: none;
+        border-color: var(--primary-red);
+        box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.1);
       }
       textarea{ min-height:70px; resize:vertical; }
       .muted{ color:var(--muted); font-size:12px; }
 
       .actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
 
-      /* Bottom action bars */
       .actions.actionsBottom button{
         flex: 1 1 calc(50% - 10px);
       }
@@ -327,28 +327,33 @@
         margin-top: 12px;
       }
       .bottomBarInner{
-        width: min(1600px, calc(100vw - 32px)); /* matches main */
+        width: min(1600px, calc(100vw - 32px));
         margin: 0 auto;
-        padding: 10px 0; /* width already provides side gutters */
+        padding: 10px 0;
       }
 
       button{
-        padding:10px 12px;
+        padding:10px 14px;
         border-radius:12px;
-        border:1px solid #d1d5db;
+        border:1px solid var(--border);
         background:#fff;
         cursor:pointer;
         font-weight:900;
         font-size:14px;
+        transition: all 0.2s;
       }
-      button.primary{ background:#111; color:#fff; border-color:#111; }
-      button.danger{ background:#b91c1c; color:#fff; border-color:#b91c1c; }
+      button:hover:not(:disabled){ background:#f3f4f6; border-color: var(--border); }
+      button.primary{ background: var(--primary-red); color:#fff; border-color: var(--primary-red); }
+      button.primary:hover:not(:disabled){ background: var(--hover-red); border-color: var(--hover-red); }
+      button.danger{ background:#dc2626; color:#fff; border-color:#dc2626; }
+      button.danger:hover:not(:disabled){ background:#b91c1c; border-color:#b91c1c; }
       button.ghost{
         background:transparent;
         padding:6px 10px;
         border-radius:999px;
         font-size:12px;
       }
+      button.ghost:hover:not(:disabled){ background: var(--light-red-tint); }
       button:disabled{ opacity:.45; cursor:not-allowed; }
 
       .kpi{ display:flex; gap:10px; flex-wrap:wrap; }
@@ -357,13 +362,13 @@
         align-items:center;
         gap:6px;
         font-size:12px;
-        padding:5px 10px;
+        padding:8px 12px;
         border-radius:999px;
-        background:#f3f4f6;
-        border:1px solid var(--border);
+        background: var(--light-red-tint);
+        border:1px solid #f5d5d0;
         white-space:nowrap;
       }
-      .pill strong{ font-weight:900; }
+      .pill strong{ font-weight:900; color: var(--primary-red); }
 
       .warn{ background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; padding:10px; border-radius:12px; font-weight:900; }
       .ok{ background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; padding:10px; border-radius:12px; font-weight:900; }
@@ -371,18 +376,20 @@
       .tablewrap{
         overflow:auto;
         border:1px solid var(--border);
-        border-radius:12px;
+        border-radius:14px;
       }
       table{ width:100%; border-collapse:collapse; min-width: 980px; }
       th, td{ padding:10px; border-bottom:1px solid #eee; vertical-align:top; }
       th{
         font-size:12px;
         text-align:left;
-        background:#fafafa;
+        background:#f9fafb;
         position:sticky;
         top:0;
         z-index:2;
         white-space:nowrap;
+        font-weight: 900;
+        color: var(--primary-dark);
       }
       td input, td select{ padding:10px; border-radius:10px; }
       .right{ text-align:right; }
@@ -400,26 +407,26 @@
 
       .basisGroup{ display:flex; gap:6px; flex-wrap:wrap; }
       .basisBtn{
-        border:1px solid #d1d5db;
+        border:1px solid var(--border);
         background:#fff;
         border-radius:999px;
-        padding:7px 10px;
+        padding:7px 12px;
         font-weight:900;
         font-size:12px;
         cursor:pointer;
         line-height:1;
+        transition: all 0.2s;
       }
-      .basisBtn.active{ background:#111; color:#fff; border-color:#111; }
+      .basisBtn:hover{ border-color: var(--primary-red); color: var(--primary-red); }
+      .basisBtn.active{ background: var(--primary-red); color:#fff; border-color: var(--primary-red); }
 
       tr.basis-hours{ background:#ecfeff; }
       tr.basis-loads{ background:#eef2ff; }
-      tr.basis-tons{ background:#f0fdf4; }
       tr.basis-hauloffs{ background:#fff7ed; }
       tr.basis-flat{ background:#f3f4f6; }
 
       .mobileOnly{ display:none; }
 
-      /* ===================== COMPACT SPACING (desktop + mobile) ===================== */
       .tabs{ margin: 0 0 8px; }
 
       .card{
@@ -438,7 +445,7 @@
       .actions{ gap:8px; }
 
       .kpi{ gap:8px; }
-      .pill{ padding:4px 9px; }
+      .pill{ padding:6px 11px; }
 
       th, td{ padding:8px; }
       td input, td select{ padding:8px; }
@@ -447,11 +454,9 @@
         padding:9px 12px;
       }
 
-      /* shrink the manual spacer divs you used in HTML */
       div[style*="height:10px"]{ height:6px !important; }
       div[style*="height:12px"]{ height:8px !important; }
 
-      /* bottom bar tighter */
       .bottomBar{ margin-top:8px; }
       .bottomBarInner{ padding:8px 0; }
 
@@ -459,14 +464,12 @@
 
         html{ overflow: hidden; }
 
-        /* push content down so it doesn't hide under fixed header */
         main{
           padding: 8px 10px 130px;
         }
 
         .tabs{ display:none; }
 
-        /* Mobile-only: a bit rounder */
         #gearBtn,
         #menuBtn{
         border-radius: 14px;
@@ -495,7 +498,6 @@
         .tablewrap{ display:none; }
         .mobileOnly{ display:block; }
 
-        /* Base mobile grid */
         .lineGrid{ grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
         .lineGrid > div{ min-width:0; }
         .lineGrid input{ min-width:0; max-width:100%; }
@@ -506,7 +508,6 @@
           width:100%;
         }
 
-        /* Logbook mobile should be single-column */
         .logGrid{ grid-template-columns: 1fr; }
 
         .lineCard{
@@ -527,8 +528,8 @@
           font-weight:900;
           font-size:12px;
           color:#111;
-          background:#f3f4f6;
-          border:1px solid var(--border);
+          background: var(--light-red-tint);
+          border:1px solid #f5d5d0;
           border-radius:999px;
           padding:4px 10px;
         }
@@ -544,7 +545,7 @@
           gap:10px;
           margin-top:10px;
           padding-top:10px;
-          border-top:1px dashed #e5e7eb;
+          border-top:1px dashed var(--border);
         }
         .lineTotals .totalVal{
           font-weight:900;
@@ -559,7 +560,6 @@
         .lineActions button{ flex:1; }
         .lineActions button.ghost{ flex:0 0 auto; }
 
-        /* iOS DATE/TIME INPUT FIX */
         .mobileOnly input[type="date"],
         .mobileOnly input[type="time"]{
           -webkit-appearance: none;
@@ -574,7 +574,6 @@
           text-align: left;
         }
 
-        /* Sticky bottom action bar (mobile only) */
         .bottomBar{
           position: fixed;
           left: 0;
@@ -582,11 +581,11 @@
           bottom: 0;
           z-index: 40;
           background: var(--bg);
-          border-top: 1px solid #e5e7eb;
+          border-top: 1px solid var(--border);
         }
 
         .bottomBarInner{
-          width: calc(100vw - 20px);  /* matches your mobile main padding (10px + 10px) */
+          width: calc(100vw - 20px);
           margin: 0 auto;
           padding: 8px 0;
           padding-bottom: calc(8px + env(safe-area-inset-bottom));
@@ -606,33 +605,32 @@
         }
       }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
   </head>
 
   <body>
     <header class="headerCentered">
-      <!-- Hamburger (far left) -->
       <button id="menuBtn" type="button" aria-label="Menu" aria-haspopup="true" aria-expanded="false">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
       </button>
 
-      <!-- Dropdown panel -->
       <div id="menuPanel" class="menuPanel" role="menu" aria-label="Navigation">
+        <button type="button" class="menuItem active" data-tab="authorizations" role="menuitem">Work Authorization</button>
         <button type="button" class="menuItem" data-tab="invoice" role="menuitem">Invoice Sheet</button>
         <button type="button" class="menuItem" data-tab="logbook" role="menuitem">Driver Logbook</button>
         <button type="button" class="menuItem" data-tab="photos" role="menuitem">Tickets & Receipts</button>
       </div>
 
       <div class="brand">
-        <img src="" alt="Company Logo" />
+        <img src="fem_trucking_logo.svg" alt="FEM Trucking Logo" onerror="this.style.display='none';" />
         <div class="btxt">
-          <div class="bname">Logistics Dispatch Demo</div>
-          <div class="bsub">Operations Management Prototype</div>
+          <div class="bname">FEM Trucking</div>
+          <div class="bsub">San Antonio &amp; Surrounding Areas</div>
         </div>
       </div>
 
-      <!-- Gear button (far right) -->
       <button id="gearBtn" type="button" aria-label="Settings">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path
@@ -655,15 +653,16 @@
 
     <div id="pageScroll"><main>
       <div class="tabs">
-        <button class="tabbtn active" data-tab="invoice">Invoice Sheet</button>
+        <button class="tabbtn active" data-tab="authorizations">Work Authorization</button>
+        <button class="tabbtn" data-tab="invoice">Invoice Sheet</button>
         <button class="tabbtn" data-tab="logbook">Driver Logbook</button>
         <button class="tabbtn" data-tab="photos">Tickets & Receipts</button>
       </div>
 
-      <!-- ===================== INVOICE ===================== -->
-      <section id="invoice" class="tab">
+      <!-- INVOICE -->
+      <section id="invoice" class="tab" style="display:none;">
         <div class="card">
-          <div class="row cols3">
+          <div class="row cols4">
             <div>
               <label>Driver</label>
               <input id="inv_driver" placeholder="Driver name" />
@@ -673,6 +672,10 @@
               <input id="inv_truck" placeholder="Truck # / Unit #" />
             </div>
             <div>
+              <label>Invoice #</label>
+              <input id="inv_number" placeholder="Auto-generated" readonly style="font-weight:900; background:#f9fafb;" />
+            </div>
+            <div>
               <label>Invoice Week / Notes</label>
               <input id="inv_week" placeholder="Optional (e.g., Week of 02/12)" />
             </div>
@@ -680,14 +683,22 @@
 
           <div style="height:10px"></div>
 
-          <div class="row cols2">
+          <div class="row cols3">
             <div>
               <label>Contractor / Customer (default)</label>
               <input id="inv_default_contractor" placeholder="Optional default for new rows" />
             </div>
             <div>
               <label>Location → Destination (default)</label>
-              <input id="inv_default_route" placeholder="Optional (e.g., Yard → Jobsite)" />
+              <input id="inv_default_route" placeholder="Optional (e.g., Brontek → 1130 Mount Sharp)" />
+            </div>
+            <div>
+              <label>Payment Status</label>
+              <select id="inv_payment_status">
+                <option value="draft">Draft</option>
+                <option value="sent">Sent</option>
+                <option value="paid">Paid</option>
+              </select>
             </div>
           </div>
 
@@ -728,14 +739,13 @@
             <span class="pill">Rows <strong id="kpi_rows">0</strong></span>
             <span class="pill">Hours <strong id="kpi_hours">0.00</strong></span>
             <span class="pill">Loads <strong id="kpi_loads">0</strong></span>
-            <span class="pill">Tons <strong id="kpi_tons">0.00</strong></span>
             <span class="pill">Subtotal <strong id="kpi_subtotal">$0.00</strong></span>
             <span class="pill">% Fee <strong id="kpi_fee">$0.00</strong></span>
             <span class="pill">Total Due <strong id="kpi_totaldue">$0.00</strong></span>
           </div>
 
           <div class="muted" style="margin-top:10px;">
-            Note: Each line displays the selected Basis (Qty), Rate, and Line Total. The % Fee is added to the subtotal.
+            Tip: Each line only shows the selected Basis (Qty) + Rate + Total. % Fee is an <strong>addition</strong> to subtotal.
             Mileage belongs in Logbook.
           </div>
         </div>
@@ -775,16 +785,188 @@
                 <button id="dup_last_btn">Duplicate Last</button>
                 <button class="danger" id="clear_lines_btn">Clear Lines</button>
                 <button id="export_invoice_btn">Export Invoice CSV</button>
-                <button id="email_invoice_btn">Email Accounting (Demo)</button>
+                <button id="email_invoice_btn">Email Invoice</button>
               </div>
             </div>
           </div>
-        </div> <!-- closes the Invoice lines card -->
+        </div>
 
         <div id="inv_validation" class="card" style="display:none;"></div>
       </section>
 
-      <!-- ===================== LOGBOOK ===================== -->
+
+      <!-- WORK AUTHORIZATION -->
+      <section id="authorizations" class="tab">
+        <div class="card">
+          <div class="row cols2">
+            <div>
+              <label>Customer / Contractor</label>
+              <input id="auth_customer" placeholder="Company name" />
+            </div>
+            <div>
+              <label>Contact Email</label>
+              <input id="auth_email" type="email" placeholder="name@company.com" />
+            </div>
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div class="row cols2">
+            <div>
+              <label>Contact Phone (optional)</label>
+              <input id="auth_phone" placeholder="Phone number" />
+            </div>
+            <div>
+              <label>Job Date</label>
+              <input id="auth_job_date" type="date" />
+            </div>
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div class="row cols2">
+            <div>
+              <label>Start Location</label>
+              <input id="auth_start_location" placeholder="Pickup / origin" />
+            </div>
+          <div>
+            <label>End Location</label>
+            <input id="auth_end_location" placeholder="Drop-off / destination" />
+          </div>
+        </div>
+
+        <div style="height:10px"></div>
+
+        <div class="row cols4">
+          <div>
+            <label>Payment Terms</label>
+            <select id="auth_payment_terms">
+              <option value="due_on_receipt">Due on receipt</option>
+              <option value="job_complete">Due upon job completion</option>
+              <option value="net_7">Net 7</option>
+              <option value="net_15">Net 15</option>
+              <option value="net_30">Net 30</option>
+              <option value="weekly_billing">Weekly billing</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+
+          <div id="auth_payment_terms_custom_wrap" style="display:none;">
+            <label>Custom Payment Terms</label>
+            <input id="auth_payment_terms_custom" placeholder="Enter custom payment terms" />
+          </div>
+
+          <div>
+            <label>% Fee (optional)</label>
+            <input id="auth_fee_pct" type="number" min="0" step="0.01" placeholder="e.g., 10 for 10%" />
+          </div>
+
+          <div>
+            <label>8-hour minimum toggle</label>
+            <select id="auth_min8">
+              <option value="off">Off</option>
+              <option value="on">On (if hours &lt; 8, bill 8)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="height:10px"></div>
+
+        <div class="row cols2">
+          <div>
+            <label>Fee applies to</label>
+            <select id="auth_fee_mode">
+              <option value="subtotal">Subtotal (recommended)</option>
+              <option value="hours_only">Hours lines only</option>
+              <option value="loads_only">Non-hours lines only</option>
+            </select>
+          </div>
+          <div class="muted" style="display:flex; align-items:end;">
+            Customer approval should include any fee and 8-hour minimum terms if they apply.
+          </div>
+        </div>
+
+        <div style="height:10px"></div>
+
+        <div>
+          <label>Pricing Lines</label>
+          <div class="muted" style="margin-bottom:8px;">
+            Add one or more job types and rates the customer is agreeing to.
+          </div>
+
+          <div class="tablewrap">
+            <table style="min-width:900px;">
+              <thead>
+                <tr>
+                  <th>Basis</th>
+                  <th class="right">Qty</th>
+                  <th class="right">Rate</th>
+                  <th class="right">Total</th>
+                  <th>Description / Notes</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="auth_price_tbody"></tbody>
+            </table>
+          </div>
+
+          <div class="mobileOnly" id="auth_price_mobile_list"></div>
+
+          <div style="height:10px"></div>
+
+          <div class="actions">
+            <button type="button" class="primary" id="add_auth_price_btn">+ Add Pricing Line</button>
+          </div>
+        </div>
+
+          <div style="height:10px"></div>
+
+          <div>
+            <label>Terms</label>
+              <textarea id="auth_terms">By approving this work, customer agrees to the quoted rates, quantities, payment terms, applicable fees, any 8-hour minimum terms when selected, and applicable detention/standby charges, and confirms they are authorized to bind their company.</textarea>
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div class="row cols2">
+            <div>
+              <label>Authorized Person Name</label>
+              <input id="auth_signer" placeholder="Typed full name" />
+            </div>
+            <div>
+              <label>Title / Role</label>
+              <input id="auth_title" placeholder="Project Manager, Superintendent, etc." />
+            </div>
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div class="actions">
+            <label style="display:flex; gap:8px; align-items:center; margin:0;">
+              <input id="auth_agree" type="checkbox" style="width:auto;" />
+              <span>Approval request reviewed and ready to send.</span>
+            </label>
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div class="actions">
+            <button class="primary" id="save_auth_btn">Save Authorization</button>
+            <button id="email_auth_btn">Send Approval Email</button>
+            <button id="clear_auth_form_btn">Clear Form</button>
+          </div>
+
+          <div class="muted" style="margin-top:10px;">
+            Phase 1: this version saves locally and opens an email draft. Later, this can become a tracked approval-link workflow.
+          </div>
+        </div>
+
+        <div class="card">
+          <div id="auth_list" class="muted">No authorizations saved yet.</div>
+        </div>
+      </section>
+
+      <!-- LOGBOOK -->
       <section id="logbook" class="tab" style="display:none;">
         <div class="card">
           <div class="row cols3">
@@ -807,8 +989,6 @@
             Logbook is for mileage/time proof and documentation. Start/End includes dates for overnight jobs.
           </div>
         </div>
-
-        <!-- (removed duplicate logbook card) -->
 
         <div class="card">
           <div class="muted" style="margin-bottom:8px;">
@@ -840,30 +1020,29 @@
 
           <div style="height:12px"></div>
 
-          <!-- Actions moved UNDER the rows -->
           <div class="bottomBar">
             <div class="bottomBarInner">
               <div class="actions actionsBottom">
                 <button class="primary" id="add_log_row_btn">+ Add Log Row</button>
                 <button class="danger" id="clear_log_btn">Clear Log Rows</button>
                 <button id="export_log_btn">Export Logbook CSV</button>
-                <button id="email_log_btn">Email Accounting (Demo)</button>
+                <button id="email_log_btn">Email Logbook</button>
               </div>
             </div>
           </div>
-        </div> <!-- closes the Logbook card -->
+        </div>
 
         <div id="log_validation" class="card" style="display:none;"></div>
       </section>
 
-      <!-- ===================== PHOTOS ===================== -->
+      <!-- PHOTOS -->
       <section id="photos" class="tab" style="display:none;">
         <div class="card">
           <div class="row cols3">
             <div>
               <label>Attach ticket/receipt photo</label>
               <input id="photo_input" type="file" accept="image/*" capture="environment" />
-              <div class="muted">Saved locally on this device.</div>
+              <div class="muted">Saved locally on this device (v1).</div>
             </div>
             <div>
               <label>Tag</label>
@@ -881,7 +1060,7 @@
             <button class="primary" id="save_photo_btn">Save Photo</button>
             <button class="danger" id="clear_photos_btn">Clear Photos</button>
             <button id="export_photos_index_btn">Export Tickets/Receipts Index CSV</button>
-            <button id="email_photos_btn">Email Accounting (Demo)</button>
+            <button id="email_photos_btn">Email Photos Index</button>
           </div>
 
           <div class="muted" style="margin-top:10px;">
@@ -897,7 +1076,6 @@
         </div>
       </section>
 
-      <!-- ===================== SETTINGS ===================== -->
     </main></div>
 
     <!-- SETTINGS MODAL -->
@@ -912,7 +1090,7 @@
           <div class="row cols2">
             <div>
               <label>Company</label>
-              <input id="set_company" placeholder="Demo Company" />
+              <input id="set_company" placeholder="FEM Trucking" />
             </div>
             <div>
               <label>Default currency</label>
@@ -924,49 +1102,35 @@
 
           <div style="height:10px"></div>
 
+          <div style="height:10px"></div>
+
+          <div>
+            <label>Invoice Email Recipient</label>
+            <input id="set_email" placeholder="e.g., cecilia@femtrucking.com" />
+            <div class="muted">Used for "Email Invoice" and "Email Logbook" buttons.</div>
+          </div>
+
+          <div style="height:10px"></div>
+
           <div class="row cols2">
             <div>
               <label>Reset everything</label>
               <button class="danger" id="reset_all_btn" type="button">Reset App Data</button>
               <div class="muted">Clears invoice lines, logbook, and photos from this browser.</div>
             </div>
-
-            <div>
-              <!--
-              <details class="advanced">
-                <summary>Advanced (Admin)</summary>
-                <div style="height:10px"></div>
-                <div class="actions">
-                  <button id="backup_btn" type="button">Download Backup JSON</button>
-                  <button id="restore_btn" type="button">Restore Backup JSON</button>
-                  <input id="restore_file" type="file" accept="application/json" style="display:none;" />
-                </div>
-                <div class="muted" style="margin-top:8px;">Use only if you know what you’re doing.</div>
-              </details>
-              -->
-            </div>
           </div>
 
           <div style="height:10px"></div>
 
           <div class="warn" style="font-size:12px;">
-            This version stores data locally in the browser. Next step: enable cloud sync for driver submissions and centralized admin exports.
+            v1 is local-only. Next step: add cloud sync so drivers can submit from phones and admin can export centrally.
           </div>
         </div>
       </div>
     </div>
 
     <script>
-      /* ======================================================
-         Dispatch Demo – Single-file offline app (drop-in) /
-         FIXES ADDED IN THIS VERSION:
-         - Polyfills for CSS.escape + String.replaceAll (older Safari)
-         - Logbook mobile inputEl now applies step/placeholder
-         - iOS date/time CSS fix added back (mobileOnly)
-         ====================================================== */
-
       (function polyfills(){
-        // String.prototype.replaceAll (older Safari)
         if(!String.prototype.replaceAll){
           String.prototype.replaceAll = function(search, replacement){
             const target = String(this);
@@ -974,8 +1138,6 @@
             return target.split(s).join(String(replacement));
           };
         }
-
-        // CSS.escape (older Safari)
         if(!(window.CSS && CSS.escape)){
           window.CSS = window.CSS || {};
           CSS.escape = function(value){
@@ -987,12 +1149,10 @@
         }
       })();
 
-      const STORAGE_KEY = "dispatch_demo_v1";
-
-      /* ---------- Load + normalize ---------- */
+      const STORAGE_KEY = "fem_app_v4";
       const loaded = loadState();
       const state = normalizeState(loaded) || {
-        settings: { company: "Dispatch Operations Demo", currency: "USD" },
+        settings: { company: "FEM Trucking", currency: "USD", email: "cecilia@femtrucking.com", nextInvoiceNum: 1 },
         invoice: {
           driver: "",
           truck: "",
@@ -1003,21 +1163,22 @@
           feeMode: "subtotal",
           hoursOverride: "",
           min8: "off",
+          invoiceNumber: "",
+          paymentStatus: "draft",
           lines: []
         },
         logbook: { driver: "", truck: "", notes: "", rows: [] },
-        photos: []
+        photos: [],
+        authorizations: []
       };
 
       function normalizeState(obj){
         if(!obj || typeof obj !== "object") return null;
-
-        // settings
-        if(!obj.settings) obj.settings = { company:"Demo Company", currency:"USD" };
-        if(obj.settings.company === null || obj.settings.company === undefined) obj.settings.company = "Demo Company";
+        if(!obj.settings) obj.settings = { company:"FEM Trucking", currency:"USD", email:"cecilia@femtrucking.com", nextInvoiceNum:1 };
+        if(obj.settings.company === null || obj.settings.company === undefined) obj.settings.company = "FEM Trucking";
         if(obj.settings.currency === null || obj.settings.currency === undefined) obj.settings.currency = "USD";
-
-        // invoice
+        if(!obj.settings.email) obj.settings.email = "cecilia@femtrucking.com";
+        if(!obj.settings.nextInvoiceNum) obj.settings.nextInvoiceNum = 1;
         if(!obj.invoice) obj.invoice = {};
         if(obj.invoice.driver === null || obj.invoice.driver === undefined) obj.invoice.driver = "";
         if(obj.invoice.truck === null || obj.invoice.truck === undefined) obj.invoice.truck = "";
@@ -1028,27 +1189,32 @@
         if(obj.invoice.feeMode === null || obj.invoice.feeMode === undefined) obj.invoice.feeMode = "subtotal";
         if(obj.invoice.hoursOverride === null || obj.invoice.hoursOverride === undefined) obj.invoice.hoursOverride = "";
         if(obj.invoice.min8 === null || obj.invoice.min8 === undefined) obj.invoice.min8 = "off";
+        if(obj.invoice.invoiceNumber === null || obj.invoice.invoiceNumber === undefined) obj.invoice.invoiceNumber = "";
+        if(obj.invoice.paymentStatus === null || obj.invoice.paymentStatus === undefined) obj.invoice.paymentStatus = "draft";
         if(!obj.invoice.lines) obj.invoice.lines = [];
-
-        // logbook
         if(!obj.logbook) obj.logbook = {};
         if(obj.logbook.driver === null || obj.logbook.driver === undefined) obj.logbook.driver = "";
         if(obj.logbook.truck === null || obj.logbook.truck === undefined) obj.logbook.truck = "";
         if(obj.logbook.notes === null || obj.logbook.notes === undefined) obj.logbook.notes = "";
         if(!obj.logbook.rows) obj.logbook.rows = [];
-
-        // ensure manualHours exists
         obj.logbook.rows.forEach(function(r){
           if(r.manualHours === null || r.manualHours === undefined) r.manualHours = false;
         });
-
-        // photos
         if(!obj.photos) obj.photos = [];
-
+        if(!obj.authorizations) obj.authorizations = [];
+        obj.authorizations.forEach(function(a){
+          if(!a.status) a.status = "pending";
+        });
         return obj;
       }
 
-      function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+      function saveState(){
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch(e){
+          alert("Warning: Could not save data. Your browser storage may be full. Try clearing some photos or exporting your data.");
+        }
+      }
       function loadState(){
         try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); }
         catch { return null; }
@@ -1088,10 +1254,6 @@
         if(el.value !== nv) el.value = nv;
       }
 
-      /* ======================================================
-      Header height → CSS var (--headerH)
-      (Keeps main padding synced to the fixed header height)
-      ====================================================== */
       function setHeaderH(){
         const header = document.querySelector("header");
         const h = header ? Math.ceil(header.getBoundingClientRect().height) : 0;
@@ -1100,28 +1262,21 @@
 
       window.addEventListener("load", setHeaderH);
       window.addEventListener("orientationchange", setHeaderH);
-
-    let resizeT;
+      let resizeT;
       window.addEventListener("resize", ()=>{
         clearTimeout(resizeT);
         resizeT = setTimeout(setHeaderH, 200);
       });
+      setHeaderH();
+      requestAnimationFrame(()=>requestAnimationFrame(setHeaderH));
+      const logoImg = document.querySelector("header .brand img");
+      if(logoImg){
+        logoImg.addEventListener("load", setHeaderH);
+      }
 
-    setHeaderH();
-    // run again after layout settles (fonts/images)
-    requestAnimationFrame(()=>requestAnimationFrame(setHeaderH));
-
-    // Recalc header height after logo image loads (prevents extra gap on iOS)
-    const logoImg = document.querySelector("header .brand img");
-    if(logoImg){
-      logoImg.addEventListener("load", setHeaderH);
-    }
-
-      /* Settings modal (gear icon) */
       const gearBtn = document.getElementById("gearBtn");
       const settingsModal = document.getElementById("settingsModal");
       const settingsCloseBtn = document.getElementById("settingsCloseBtn");
-
       function openSettings(){
         setHeaderH();
         settingsModal.classList.add("open");
@@ -1129,65 +1284,49 @@
       function closeSettings(){
         settingsModal.classList.remove("open");
       }
-
       gearBtn.addEventListener("click", openSettings);
       settingsCloseBtn.addEventListener("click", closeSettings);
-
-      // click outside modal closes
       settingsModal.addEventListener("click", (e)=>{
         if(e.target === settingsModal) closeSettings();
       });
-
-      // Esc closes
       document.addEventListener("keydown", (e)=>{
         if(e.key === "Escape" && settingsModal.classList.contains("open")) closeSettings();
       });
 
-      /* Tabs (desktop pills + hamburger menu) */
       function setActiveTab(tab){
-        // desktop pills
         document.querySelectorAll(".tabbtn").forEach(b=>{
           b.classList.toggle("active", b.dataset.tab === tab);
         });
-
-        // show section
         document.querySelectorAll(".tab").forEach(sec=>sec.style.display="none");
         document.getElementById(tab).style.display="block";
-
-        // hamburger highlight (if present)
         document.querySelectorAll("#menuPanel .menuItem").forEach(b=>{
           b.classList.toggle("active", b.dataset.tab === tab);
         });
-
-        // close menu if open
         const mp = document.getElementById("menuPanel");
         const mb = document.getElementById("menuBtn");
         if(mp && mb){
           mp.classList.remove("open");
           mb.setAttribute("aria-expanded","false");
         }
+        // Scroll to top on tab switch (especially important on mobile)
+        const pageScroll = document.getElementById("pageScroll");
+        if(pageScroll) pageScroll.scrollTop = 0;
       }
 
-      // Desktop pill clicks
       document.querySelectorAll(".tabbtn").forEach(btn=>{
         btn.addEventListener("click", ()=> setActiveTab(btn.dataset.tab));
       });
 
-      // Hamburger menu wiring
       const menuBtn = document.getElementById("menuBtn");
       const menuPanel = document.getElementById("menuPanel");
-
       if(menuBtn && menuPanel){
         menuBtn.addEventListener("click", ()=>{
           const isOpen = menuPanel.classList.toggle("open");
           menuBtn.setAttribute("aria-expanded", String(isOpen));
         });
-
         menuPanel.querySelectorAll(".menuItem").forEach(btn=>{
           btn.addEventListener("click", ()=> setActiveTab(btn.dataset.tab));
         });
-
-        // click outside closes
         document.addEventListener("click", (e)=>{
           if(!menuPanel.classList.contains("open")) return;
           if(menuBtn.contains(e.target)) return;
@@ -1195,8 +1334,6 @@
           menuPanel.classList.remove("open");
           menuBtn.setAttribute("aria-expanded","false");
         });
-
-        // Esc closes
         document.addEventListener("keydown", (e)=>{
           if(e.key === "Escape"){
             menuPanel.classList.remove("open");
@@ -1205,7 +1342,6 @@
         });
       }
 
-      /* Debounce validations */
       let invValidateTimer=null, logValidateTimer=null;
       function scheduleInvoiceValidation(){
         if(invValidateTimer) clearTimeout(invValidateTimer);
@@ -1216,21 +1352,17 @@
         logValidateTimer = setTimeout(()=> renderLogValidation(), 120);
       }
 
-      /* ===================== HEADER SYNC (Invoice <-> Logbook) ===================== */
       const inv_driver = byId("inv_driver");
       const inv_truck  = byId("inv_truck");
       const inv_week   = byId("inv_week");
-
       const log_driver = byId("log_driver");
       const log_truck  = byId("log_truck");
       const log_notes  = byId("log_notes");
-
       let syncingHeaders = false;
 
       function syncHeaders(from){
         if(syncingHeaders) return;
         syncingHeaders = true;
-
         if(from === "invoice"){
           state.logbook.driver = state.invoice.driver || "";
           state.logbook.truck  = state.invoice.truck  || "";
@@ -1242,23 +1374,19 @@
           setInputValue(inv_driver, state.invoice.driver);
           setInputValue(inv_truck,  state.invoice.truck);
         }
-
         saveState();
         syncingHeaders = false;
-
         renderInvoiceKPIs();
         scheduleInvoiceValidation();
         scheduleLogValidation();
       }
 
-      /* ===================== INVOICE ===================== */
       const inv_default_contractor = byId("inv_default_contractor");
       const inv_default_route      = byId("inv_default_route");
       const inv_fee_pct            = byId("inv_fee_pct");
       const inv_fee_mode           = byId("inv_fee_mode");
       const inv_hours_override     = byId("inv_hours_override");
       const inv_min8               = byId("inv_min8");
-
       let prevDefaultContractor = state.invoice.defaultContractor || "";
       let prevDefaultRoute      = state.invoice.defaultRoute || "";
 
@@ -1281,7 +1409,6 @@
         syncHeaders("invoice");
       });
       inv_week.addEventListener("input", e=>{ state.invoice.week = e.target.value; saveState(); });
-
       inv_default_contractor.addEventListener("input", e=>{
         const newVal = e.target.value;
         propagateDefaultsToLines(prevDefaultContractor, newVal, "contractor");
@@ -1298,7 +1425,6 @@
         saveState();
         renderInvoice();
       });
-
       inv_fee_pct.addEventListener("input", e=>{
         state.invoice.feePct = e.target.value;
         saveState();
@@ -1319,8 +1445,13 @@
         saveState();
         renderInvoice(); scheduleInvoiceValidation();
       });
-
-      /* Logbook header listeners (bi-directional sync) */
+      const inv_payment_status = byId("inv_payment_status");
+      if(inv_payment_status){
+        inv_payment_status.addEventListener("change", e=>{
+          state.invoice.paymentStatus = e.target.value;
+          saveState();
+        });
+      }
       log_driver.addEventListener("input", e=>{
         state.logbook.driver = e.target.value;
         syncHeaders("logbook");
@@ -1357,17 +1488,16 @@
         return "basis-" + String(basis||"").toLowerCase();
       }
       function clearIrrelevantFields(line){
-        if(line.basis === "hours"){ line.loads=""; line.tons=""; line.hauloffs=""; }
-        else if(line.basis === "loads"){ line.hours=""; line.tons=""; line.hauloffs=""; }
-        else if(line.basis === "tons"){ line.hours=""; line.loads=""; line.hauloffs=""; }
+        if(line.basis === "hours"){ line.loads=""; line.hauloffs=""; line.tons=""; }
+        else if(line.basis === "loads"){ line.hours=""; line.hauloffs=""; line.tons=""; }
         else if(line.basis === "hauloffs"){ line.hours=""; line.loads=""; line.tons=""; }
-        else if(line.basis === "flat"){ line.hours=""; line.loads=""; line.tons=""; line.hauloffs=""; }
+        else if(line.basis === "flat"){ line.hours=""; line.loads=""; line.hauloffs=""; line.tons=""; }
       }
       function basisQty(line){
         if(line.basis==="hours") return num(line.hours);
         if(line.basis==="loads") return num(line.loads);
-        if(line.basis==="tons") return num(line.tons);
         if(line.basis==="hauloffs") return num(line.hauloffs);
+        if(line.basis==="flat") return 1;
         return 0;
       }
       function calcLineTotal(line){
@@ -1378,14 +1508,13 @@
           return round2(rate * qty);
         }
         if(line.basis === "loads") return round2(rate * num(line.loads));
-        if(line.basis === "tons") return round2(rate * num(line.tons));
         if(line.basis === "hauloffs") return round2(rate * num(line.hauloffs));
-        return round2(rate); // flat
+        if(line.basis === "flat") return round2(rate);
+        return round2(rate);
       }
       function computeFee(subtotal){
         const feePct = num(state.invoice.feePct);
         let feeBase = subtotal;
-
         if(state.invoice.feeMode === "hours_only"){
           feeBase = round2(state.invoice.lines
             .filter(l=>l.basis==="hours")
@@ -1395,7 +1524,6 @@
             .filter(l=>l.basis!=="hours")
             .reduce((a,l)=>a + calcLineTotal(l), 0));
         }
-
         const fee = round2(feeBase * (feePct/100));
         return { feePct, feeBase, fee };
       }
@@ -1423,7 +1551,6 @@
         const opts = [
           ["hours","Hrs"],
           ["loads","Loads"],
-          ["tons","Tons"],
           ["hauloffs","Haul"],
           ["flat","Flat"]
         ];
@@ -1447,7 +1574,6 @@
       function invTdQty(line, afterChange){
         const td = document.createElement("td");
         td.className = "right";
-
         const meta = {
           hours:   { key:"hours",    step:"0.25", placeholder:"0", aria:"Hours" },
           loads:   { key:"loads",    step:"1",    placeholder:"0", aria:"Loads" },
@@ -1455,27 +1581,23 @@
           hauloffs:{ key:"hauloffs", step:"1",    placeholder:"0", aria:"Haul Offs" },
           flat:    { key:null }
         }[line.basis] || { key:"loads", step:"1", placeholder:"0", aria:"Loads" };
-
         if(line.basis === "flat"){
           td.textContent = "—";
           td.style.color = "#6b7280";
           td.style.fontWeight = "900";
           return td;
         }
-
         const inp = document.createElement("input");
         inp.type = "number";
         inp.step = meta.step;
         inp.placeholder = meta.placeholder;
         inp.value = line[meta.key] ?? "";
         inp.setAttribute("aria-label", meta.aria);
-
         inp.addEventListener("input", e=>{
           line[meta.key] = e.target.value;
           saveState();
           if(afterChange) afterChange();
         });
-
         td.appendChild(inp);
         return td;
       }
@@ -1499,23 +1621,17 @@
       function refreshInvoiceRow(lineId){
         const line = state.invoice.lines.find(l=>l.id===lineId);
         if(!line) return;
-
         const total = calcLineTotal(line);
-
-        // Update desktop row total (no rerender)
         const tr = inv_tbody.querySelector(`tr[data-line-id="${CSS.escape(lineId)}"]`);
         if(tr){
           const totalCell = tr.querySelector('[data-cell="total"]');
           if(totalCell) totalCell.textContent = money(total);
         }
-
-        // Update mobile card total (no rerender)
         const card = inv_mobile_list.querySelector(`.lineCard[data-line-id="${CSS.escape(lineId)}"]`);
         if(card){
           const totalEl = card.querySelector('[data-role="line-total"]');
           if(totalEl) totalEl.textContent = money(total);
         }
-
         renderInvoiceKPIs();
         scheduleInvoiceValidation();
       }
@@ -1526,31 +1642,25 @@
           const tr = document.createElement("tr");
           tr.setAttribute("data-line-id", line.id);
           tr.className = basisClass(line.basis);
-
           tr.appendChild(invTdInput(line, "date", "date", "", ()=> refreshInvoiceRow(line.id)));
           tr.appendChild(invTdInput(line, "ticket", "text", "Ticket #", ()=> scheduleInvoiceValidation()));
           tr.appendChild(invTdInput(line, "contractor", "text", "Contractor", ()=> scheduleInvoiceValidation()));
           tr.appendChild(invTdInput(line, "route", "text", "Location / Destination", ()=> scheduleInvoiceValidation()));
-
           tr.appendChild(invTdBasisButtons(line, ()=>{
             tr.className = basisClass(line.basis);
             saveState();
             renderInvoice();
           }));
-
           tr.appendChild(invTdQty(line, ()=> refreshInvoiceRow(line.id)));
           tr.appendChild(invTdRate(line, ()=> refreshInvoiceRow(line.id)));
-
           const tdTotal = document.createElement("td");
           tdTotal.className = "right";
           tdTotal.dataset.cell = "total";
           tdTotal.style.fontWeight = "900";
           tdTotal.textContent = money(calcLineTotal(line));
           tr.appendChild(tdTotal);
-
           const tdAct = document.createElement("td");
           tdAct.className = "nowrap";
-
           const up = document.createElement("button");
           up.className="ghost";
           up.textContent="Up";
@@ -1562,7 +1672,6 @@
             saveState();
             renderInvoice();
           });
-
           const down = document.createElement("button");
           down.className="ghost";
           down.textContent="Down";
@@ -1574,7 +1683,6 @@
             saveState();
             renderInvoice();
           });
-
           const del = document.createElement("button");
           del.className="ghost";
           del.textContent="Delete";
@@ -1583,12 +1691,10 @@
             saveState();
             renderInvoice();
           });
-
           tdAct.appendChild(up);
           tdAct.appendChild(down);
           tdAct.appendChild(del);
           tr.appendChild(tdAct);
-
           inv_tbody.appendChild(tr);
         });
       }
@@ -1596,17 +1702,14 @@
       function renderInvoiceMobile(){
         inv_mobile_list.innerHTML = "";
         if(state.invoice.lines.length === 0){
-          inv_mobile_list.innerHTML = `<div class="muted">No lines yet. Select “Add Line” to get started.</div>`;
+          inv_mobile_list.innerHTML = `<div class="muted">No lines yet. Tap "Add Line".</div>`;
           return;
         }
-
         state.invoice.lines.forEach((line, idx)=>{
           const total = calcLineTotal(line);
-
           const card = document.createElement("div");
           card.className = "lineCard";
-          card.setAttribute("data-line-id", line.id); // lets refreshInvoiceRow find this card
-
+          card.setAttribute("data-line-id", line.id);
           const header = document.createElement("div");
           header.className = "lineCardHeader";
           header.innerHTML = `
@@ -1614,29 +1717,24 @@
             <span style="font-weight:900">${escapeHtml(String(line.basis||"").toUpperCase())}</span>
           `;
           card.appendChild(header);
-
           const grid = document.createElement("div");
           grid.className = "lineGrid";
-
           const dateField = mobileField("Date", inputEl("date", line.date, v=>{ line.date=v; saveState(); scheduleInvoiceValidation(); }));
           dateField.classList.add("full");
           grid.appendChild(dateField);
-
           const ticketField = mobileField("Ticket #", inputEl("text", line.ticket, v=>{ line.ticket=v; saveState(); scheduleInvoiceValidation(); }));
           ticketField.classList.add("full");
           grid.appendChild(ticketField);
-
           grid.appendChild(mobileField("Contractor", inputEl("text", line.contractor, v=>{ line.contractor=v; saveState(); scheduleInvoiceValidation(); })));
           const routeField = mobileField("Location / Destination", inputEl("text", line.route, v=>{ line.route=v; saveState(); scheduleInvoiceValidation(); }));
           routeField.classList.add("full");
           grid.appendChild(routeField);
-
           const basisWrap = document.createElement("div");
           basisWrap.className = "full";
           basisWrap.innerHTML = `<label>Basis</label>`;
           const bg = document.createElement("div");
           bg.className = "basisGroup";
-          [["hours","Hrs"],["loads","Loads"],["tons","Tons"],["hauloffs","Haul"],["flat","Flat"]].forEach(([val,lab])=>{
+          [["hours","Hrs"],["loads","Loads"],["hauloffs","Haul"],["flat","Flat"]].forEach(([val,lab])=>{
             const b = document.createElement("button");
             b.type="button";
             b.className = "basisBtn" + (line.basis===val ? " active" : "");
@@ -1651,7 +1749,6 @@
           });
           basisWrap.appendChild(bg);
           grid.appendChild(basisWrap);
-
           const qtyMeta = {
             hours:   { key:"hours", step:"0.25", placeholder:"0" },
             loads:   { key:"loads", step:"1",    placeholder:"0" },
@@ -1659,7 +1756,6 @@
             hauloffs:{ key:"hauloffs", step:"1", placeholder:"0" },
             flat:    { key:null, step:"1", placeholder:"" }
           }[line.basis] || { key:"loads", step:"1", placeholder:"0" };
-
           if(line.basis === "flat"){
             grid.appendChild(mobileField("Qty", staticEl("—")));
           } else {
@@ -1669,15 +1765,12 @@
               refreshInvoiceRow(line.id);
             }, { step: qtyMeta.step, placeholder: qtyMeta.placeholder })));
           }
-
           grid.appendChild(mobileField("Rate", inputEl("text", line.rate, v=>{
             line.rate=v;
             saveState();
             refreshInvoiceRow(line.id);
           }, { placeholder:"0.00", inputmode:"decimal", pattern:"[0-9]*[.,]?[0-9]*" })));
-
           card.appendChild(grid);
-
           const totals = document.createElement("div");
           totals.className = "lineTotals";
           totals.innerHTML = `
@@ -1685,10 +1778,8 @@
             <div class="totalVal" data-role="line-total">${money(total)}</div>
           `;
           card.appendChild(totals);
-
           const acts = document.createElement("div");
           acts.className = "lineActions";
-
           const up = document.createElement("button");
           up.className = "ghost";
           up.textContent = "Up";
@@ -1700,7 +1791,6 @@
             saveState();
             renderInvoice();
           });
-
           const down = document.createElement("button");
           down.className = "ghost";
           down.textContent = "Down";
@@ -1712,7 +1802,6 @@
             saveState();
             renderInvoice();
           });
-
           const del = document.createElement("button");
           del.className = "ghost";
           del.textContent = "Delete";
@@ -1721,15 +1810,12 @@
             saveState();
             renderInvoice();
           });
-
           acts.appendChild(up);
           acts.appendChild(down);
           acts.appendChild(del);
-
           card.appendChild(acts);
           inv_mobile_list.appendChild(card);
         });
-
         function mobileField(lbl, controlEl){
           const wrap = document.createElement("div");
           wrap.innerHTML = `<label>${escapeHtml(lbl)}</label>`;
@@ -1742,11 +1828,8 @@
           el.value = value ?? "";
           if(extra.step) el.step = extra.step;
           if(extra.placeholder) el.placeholder = extra.placeholder;
-
-          // Better mobile keyboard behavior
           if(extra.inputmode) el.setAttribute("inputmode", extra.inputmode);
           if(extra.pattern) el.setAttribute("pattern", extra.pattern);
-
           el.addEventListener("input", ()=> onChange(el.value));
           el.addEventListener("change", ()=> onChange(el.value));
           return el;
@@ -1766,8 +1849,6 @@
 
       function renderInvoiceKPIs(){
         const lines = state.invoice.lines;
-
-        // Hours billed (respects 8-hour minimum toggle)
         const hoursSumBilled = round2(lines
           .filter(l=>l.basis==="hours")
           .reduce((a,l)=>{
@@ -1776,23 +1857,17 @@
             return a + h;
           }, 0)
         );
-
         const loadsSum = lines.reduce((a,l)=>a + Math.round(num(l.loads)), 0);
-        const tonsSum  = round2(lines.reduce((a,l)=>a + num(l.tons), 0));
         const subtotal = round2(lines.reduce((a,l)=>a + calcLineTotal(l), 0));
-
-        let hoursForFooter = hoursSumBilled; // use billed hours for KPI display
+        let hoursForFooter = hoursSumBilled;
         if(String(state.invoice.hoursOverride || "").trim() !== ""){
           hoursForFooter = round2(num(state.invoice.hoursOverride));
         }
-
         const { fee } = computeFee(subtotal);
         const totalDue = round2(subtotal + fee);
-
         byId("kpi_rows").textContent = String(lines.length);
         byId("kpi_hours").textContent = hoursForFooter.toFixed(2);
         byId("kpi_loads").textContent = String(loadsSum);
-        byId("kpi_tons").textContent = tonsSum.toFixed(2);
         byId("kpi_subtotal").textContent = money(subtotal);
         byId("kpi_fee").textContent = money(fee);
         byId("kpi_totaldue").textContent = money(totalDue);
@@ -1801,24 +1876,19 @@
       function renderInvoiceValidation(){
         const box = byId("inv_validation");
         const msgs = [];
-
         if(!String(state.invoice.driver||"").trim()) msgs.push("Invoice: Driver is blank.");
         if(!String(state.invoice.truck||"").trim()) msgs.push("Invoice: Truck is blank.");
-
         state.invoice.lines.forEach((l,i)=>{
           const n=i+1;
           if(!String(l.date||"").trim()) msgs.push(`Line ${n}: Date missing.`);
           if(!String(l.contractor||"").trim()) msgs.push(`Line ${n}: Contractor missing.`);
           if(!String(l.route||"").trim()) msgs.push(`Line ${n}: Location/Destination missing.`);
           if(String(l.rate||"").trim()==="") msgs.push(`Line ${n}: Rate missing.`);
-
           if(l.basis==="hours" && num(l.hours)<=0) msgs.push(`Line ${n}: Basis is Hours but Qty is 0.`);
           if(l.basis==="loads" && num(l.loads)<=0) msgs.push(`Line ${n}: Basis is Loads but Qty is 0.`);
-          if(l.basis==="tons" && num(l.tons)<=0) msgs.push(`Line ${n}: Basis is Tons but Qty is 0.`);
           if(l.basis==="hauloffs" && num(l.hauloffs)<=0) msgs.push(`Line ${n}: Basis is Haul Offs but Qty is 0.`);
           if(l.basis==="flat" && num(l.rate)<=0) msgs.push(`Line ${n}: Basis is Flat but Rate is 0.`);
         });
-
         box.style.display = "block";
         if(msgs.length===0){
           box.className = "card ok";
@@ -1840,13 +1910,11 @@
         renderInvoiceValidation();
       }
 
-      /* Invoice buttons */
       byId("add_row_btn").addEventListener("click", ()=>{
         state.invoice.lines.push(defaultNewLine());
         saveState();
         renderInvoice();
       });
-
       byId("dup_last_btn").addEventListener("click", ()=>{
         const last = state.invoice.lines[state.invoice.lines.length-1];
         const nl = defaultNewLine();
@@ -1859,22 +1927,19 @@
           });
           if(last.basis==="hours") nl.hours = last.hours;
           if(last.basis==="loads") nl.loads = last.loads;
-          if(last.basis==="tons") nl.tons = last.tons;
           if(last.basis==="hauloffs") nl.hauloffs = last.hauloffs;
         }
         state.invoice.lines.push(nl);
         saveState();
         renderInvoice();
       });
-
       byId("clear_lines_btn").addEventListener("click", ()=>{
-        if(!confirm("Clear all invoice lines?")) return;
+        if(!confirm("Clear ALL invoice lines?")) return;
         state.invoice.lines = [];
         saveState();
         renderInvoice();
       });
 
-      /* ===================== CSV EXPORT (ONE FILE, TWO TABLES) ===================== */
       function escapeCSV(v){
         const s = String(v ?? "");
         if(/[",\n]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
@@ -1889,19 +1954,24 @@
         a.click();
         return filename;
       }
-      function openEmailToAccounting(subject, body){
-        const to = "accounting@example.com";
+      function openEmailToCecilia(subject, body){
+        const to = state.settings.email || "cecilia@femtrucking.com";
         const url = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         window.location.href = url;
       }
 
       function exportInvoiceCSV(){
+        if(!state.invoice.invoiceNumber){
+          const num = state.settings.nextInvoiceNum || 1;
+          state.invoice.invoiceNumber = "FEM-" + String(num).padStart(4, "0");
+          state.settings.nextInvoiceNum = num + 1;
+          setInputValue(byId("inv_number"), state.invoice.invoiceNumber);
+          saveState();
+        }
         const lines = state.invoice.lines;
-
         const subtotal = round2(lines.reduce((a,l)=>a + calcLineTotal(l), 0));
         const { feePct, feeBase, fee } = computeFee(subtotal);
         const totalDue = round2(subtotal + fee);
-
         const hoursSumBilled = round2(lines
           .filter(l=>l.basis==="hours")
           .reduce((a,l)=>{
@@ -1910,23 +1980,19 @@
             return a + h;
           }, 0)
         );
-
         let hoursFooter = hoursSumBilled;
         if(String(state.invoice.hoursOverride||"").trim() !== "") {
           hoursFooter = round2(num(state.invoice.hoursOverride));
         }
-
         const invoiceId = `${safeFilePart(state.invoice.truck||"TRUCK")}_${safeFilePart(state.invoice.driver||"DRIVER")}_${new Date().toISOString().slice(0,10)}`;
         const fname = `invoice_${invoiceId}.csv`;
         const exportedAt = new Date().toISOString();
-
         const out = [];
-
         out.push(csvRow(["INVOICE LINES"]));
-        out.push(csvRow(["Date","Ticket #","Contractor","Location / Destination","Basis","Qty","Rate","Line Total"]));
-
+        out.push(csvRow(["Invoice #", state.invoice.invoiceNumber]));
+        out.push(csvRow(["Date","Ticket #","Contractor","Location / Destination","Basis","Qty","Rate","Line Total","Tons"]));
         if(lines.length === 0){
-          out.push(csvRow(["","","","","","","",""]));
+          out.push(csvRow(["","","","","","","","",""]));
         } else {
           lines.forEach(l=>{
             const qty = (l.basis==="flat") ? "" : basisQty(l);
@@ -1938,13 +2004,12 @@
               l.basis || "",
               qty === "" ? "" : qty,
               round2(num(l.rate)).toFixed(2),
-              round2(calcLineTotal(l)).toFixed(2)
+              round2(calcLineTotal(l)).toFixed(2),
+              l.tons || ""
             ]));
           });
         }
-
         out.push("");
-
         out.push(csvRow(["INVOICE TOTALS"]));
         out.push(csvRow(["Field","Value"]));
         out.push(csvRow(["Company", state.settings.company]));
@@ -1960,7 +2025,6 @@
         out.push(csvRow(["Fee Amount", fee.toFixed(2)]));
         out.push(csvRow(["Total Due", totalDue.toFixed(2)]));
         out.push(csvRow(["Exported At", exportedAt]));
-
         downloadText(fname, out.join("\n"), "text/csv;charset=utf-8");
         return { invoiceId, fname };
       }
@@ -1968,9 +2032,9 @@
       byId("export_invoice_btn").addEventListener("click", ()=>{ exportInvoiceCSV(); });
       byId("email_invoice_btn").addEventListener("click", ()=>{
         const { invoiceId, fname } = exportInvoiceCSV();
-        const subject = `Invoice Export – ${invoiceId}`;
+        const subject = `FEM Trucking Invoice Export – ${invoiceId}`;
         const body =
-`Hi Accounting Team,
+`Hi Cecilia,
 
 I exported the invoice CSV from the Dispatch to Invoice app.
 
@@ -1982,10 +2046,9 @@ This file includes:
 2) Invoice Totals table (Subtotal, Fee %, Fee Amount, Total Due) below it
 
 Thanks,`;
-        openEmailToAccounting(subject, body);
+        openEmailToCecilia(subject, body);
       });
 
-      /* ===================== LOGBOOK ===================== */
       const log_tbody = byId("log_tbody");
       const log_mobile_list = byId("log_mobile_list");
 
@@ -2018,11 +2081,9 @@ Thanks,`;
         const ed=String(r.endDate||"").trim();
         const et=String(r.endTime||"").trim();
         if(!sd||!st||!ed||!et) return null;
-
         const start = new Date(`${sd}T${st}:00`);
         const end   = new Date(`${ed}T${et}:00`);
         if(isNaN(start.getTime()) || isNaN(end.getTime())) return null;
-
         const diffMs = end.getTime() - start.getTime();
         if(diffMs < 0) return null;
         return round2(diffMs / (1000*60*60));
@@ -2033,17 +2094,13 @@ Thanks,`;
         inp.type = type;
         if(placeholder) inp.placeholder = placeholder;
         inp.value = row[key] ?? "";
-
         const handle = (e)=>{
           row[key] = e.target.value;
           saveState();
           if(afterChange) afterChange();
         };
-
-        // input works for typing, change works for date/time pickers
         inp.addEventListener("input", handle);
         inp.addEventListener("change", handle);
-
         td.appendChild(inp);
         return td;
       }
@@ -2066,19 +2123,13 @@ Thanks,`;
       function autoCalcLogHours(r, tr=null, silent=false){
         const computed = calcHoursFromDateTime(r);
         if(computed === null) return;
-
-        // Auto-calc ONLY when user has NOT manually typed hours
         if(r.manualHours) return;
-
         r.totalHours = computed;
-
-        // Desktop: update the table input if we have a row
         if(tr){
           const td = tr.children[8];
           const inp = td ? td.querySelector("input") : null;
           if(inp) inp.value = String(computed);
         }
-
         saveState();
         if(!silent) scheduleLogValidation();
       }
@@ -2093,16 +2144,13 @@ Thanks,`;
       function renderLogbookMobile(){
         if(!log_mobile_list) return;
         log_mobile_list.innerHTML = "";
-
         if(state.logbook.rows.length === 0){
-          log_mobile_list.innerHTML = `<div class="muted">No log rows yet. Select “Add Log Row” to begin.</div>`;
+          log_mobile_list.innerHTML = `<div class="muted">No log rows yet. Tap "Add Log Row".</div>`;
           return;
         }
-
         state.logbook.rows.forEach((r, idx)=>{
           const card = document.createElement("div");
           card.className = "lineCard";
-
           const header = document.createElement("div");
           header.className = "lineCardHeader";
           header.innerHTML = `
@@ -2110,76 +2158,61 @@ Thanks,`;
             <span style="font-weight:900">LOG</span>
           `;
           card.appendChild(header);
-
           const grid = document.createElement("div");
           grid.className = "lineGrid logGrid";
-
           const milesVal = document.createElement("div");
           milesVal.style.fontWeight = "900";
           milesVal.style.fontSize = "16px";
           milesVal.textContent = calcMiles(r).toFixed(2);
-
           const hoursInput = inputEl("number", r.totalHours, v=>{
             r.totalHours = v;
-            r.manualHours = String(v).trim() !== ""; //
+            r.manualHours = String(v).trim() !== "";
             saveState();
             scheduleLogValidation();
           }, { step:"0.25", placeholder:"0" });
-
           const startDateEl = inputEl("date", r.startDate, v=>{
             r.startDate = v;
-            autoCalcLogHours(r, null, true);             // recalc (mobile has no tr)
-            hoursInput.value = String(r.totalHours||""); // keep UI synced
+            autoCalcLogHours(r, null, true);
+            hoursInput.value = String(r.totalHours||"");
             scheduleLogValidation();
           });
-
           const startTimeEl = inputEl("time", r.startTime, v=>{
             r.startTime = v;
             autoCalcLogHours(r, null, true);
             hoursInput.value = String(r.totalHours||"");
             scheduleLogValidation();
           });
-
           const endDateEl = inputEl("date", r.endDate, v=>{
             r.endDate = v;
             autoCalcLogHours(r, null, true);
             hoursInput.value = String(r.totalHours||"");
             scheduleLogValidation();
           });
-
           const endTimeEl = inputEl("time", r.endTime, v=>{
             r.endTime = v;
             autoCalcLogHours(r, null, true);
             hoursInput.value = String(r.totalHours||"");
             scheduleLogValidation();
           });
-
           grid.appendChild(mobileField("Start Date", startDateEl));
           grid.appendChild(mobileField("Start Time", startTimeEl));
           grid.appendChild(mobileField("End Date", endDateEl));
           grid.appendChild(mobileField("End Time", endTimeEl));
-
           grid.appendChild(mobileField("Truck No", inputEl("text", r.truckNo, v=>{ r.truckNo=v; saveState(); scheduleLogValidation(); }, { placeholder:"Truck #" })));
           grid.appendChild(mobileField("Diesel ($)", inputEl("number", r.diesel, v=>{ r.diesel=v; saveState(); scheduleLogValidation(); }, { step:"0.01", placeholder:"0" })));
-
           grid.appendChild(mobileField("Mileage Start", inputEl("number", r.mileageStart, v=>{
             r.mileageStart = v;
             updateMilesUI(r, milesVal);
           }, { step:"1", placeholder:"0" })));
-
           grid.appendChild(mobileField("Mileage Finish", inputEl("number", r.mileageFinish, v=>{
             r.mileageFinish = v;
             updateMilesUI(r, milesVal);
           }, { step:"1", placeholder:"0" })));
-
           grid.appendChild(mobileField("Total Hours", hoursInput));
           grid.appendChild(mobileField("Total Miles", milesVal));
-
           card.appendChild(grid);
-
           const acts = document.createElement("div");
           acts.className = "lineActions";
-
           const del = document.createElement("button");
           del.className = "ghost";
           del.textContent = "Delete";
@@ -2189,13 +2222,10 @@ Thanks,`;
             renderLogbook();
             renderLogValidation();
           });
-
           acts.appendChild(del);
           card.appendChild(acts);
-
           log_mobile_list.appendChild(card);
         });
-
         function mobileField(lbl, controlEl){
           const wrap = document.createElement("div");
           wrap.innerHTML = `<label>${escapeHtml(lbl)}</label>`;
@@ -2216,11 +2246,9 @@ Thanks,`;
 
       function renderLogbook(){
         log_tbody.innerHTML = "";
-
         state.logbook.rows.forEach((r)=>{
           r.totalMiles = calcMiles(r);
           const tr = document.createElement("tr");
-
           tr.appendChild(logTdInput(r,"startDate","date","", ()=>{
             autoCalcLogHours(r, tr);
             scheduleLogValidation();
@@ -2237,15 +2265,12 @@ Thanks,`;
             autoCalcLogHours(r,tr);
             scheduleLogValidation();
           }));
-
           tr.appendChild(logTdInput(r,"truckNo","text","Truck #", ()=> scheduleLogValidation()));
           tr.appendChild(logTdRightInput(r,"diesel","number","0","0.01", ()=> scheduleLogValidation()));
-
           const milesTd = document.createElement("td");
           milesTd.className="right";
           milesTd.style.fontWeight="900";
           milesTd.textContent = calcMiles(r).toFixed(2);
-
           {
             const td = document.createElement("td");
             td.className = "right";
@@ -2261,7 +2286,6 @@ Thanks,`;
             td.appendChild(inp);
             tr.appendChild(td);
           }
-
           {
             const td = document.createElement("td");
             td.className = "right";
@@ -2277,7 +2301,6 @@ Thanks,`;
             td.appendChild(inp);
             tr.appendChild(td);
           }
-
           {
             const td = document.createElement("td");
             td.className = "right";
@@ -2286,24 +2309,16 @@ Thanks,`;
             inp.step = "0.25";
             inp.placeholder = "0";
             inp.value = r.totalHours ?? "";
-
             inp.addEventListener("input", (e)=>{
               r.totalHours = e.target.value;
-
-              // if user types anything -> manual override ON
-              // if user clears it -> manual override OFF (auto resumes)
               r.manualHours = String(e.target.value).trim() !== "";
-
               saveState();
               scheduleLogValidation();
             });
-
             td.appendChild(inp);
             tr.appendChild(td);
           }
-
           tr.appendChild(milesTd);
-
           const actTd = document.createElement("td");
           const del = document.createElement("button");
           del.className="ghost";
@@ -2316,11 +2331,9 @@ Thanks,`;
           });
           actTd.appendChild(del);
           tr.appendChild(actTd);
-
           log_tbody.appendChild(tr);
           autoCalcLogHours(r,tr,true);
         });
-
         renderLogbookMobile();
         renderLogValidation();
       }
@@ -2328,16 +2341,13 @@ Thanks,`;
       function renderLogValidation(){
         const box = byId("log_validation");
         const msgs = [];
-
         if(!String(state.logbook.driver||"").trim()) msgs.push("Logbook: Driver is blank.");
         if(!String(state.logbook.truck||"").trim()) msgs.push("Logbook: Truck # is blank.");
-
         state.logbook.rows.forEach((r,i)=>{
           const n=i+1;
           if(!String(r.truckNo||"").trim()) msgs.push(`Row ${n}: Truck No missing.`);
           const ms=num(r.mileageStart), mf=num(r.mileageFinish);
           if((ms && mf) && mf < ms) msgs.push(`Row ${n}: Mileage Finish < Mileage Start.`);
-
           const computed = calcHoursFromDateTime(r);
           if(computed === null){
             const any = [r.startDate,r.startTime,r.endDate,r.endTime].some(x=>String(x||"").trim()!=="");
@@ -2346,7 +2356,6 @@ Thanks,`;
             if(all && computed === null) msgs.push(`Row ${n}: Start/End time range invalid (end before start).`);
           }
         });
-
         box.style.display="block";
         if(msgs.length===0){
           box.className="card ok";
@@ -2367,13 +2376,12 @@ Thanks,`;
         renderLogbook();
       });
       byId("clear_log_btn").addEventListener("click", ()=>{
-        if(!confirm("Clear all logbook rows?")) return;
+        if(!confirm("Clear ALL logbook rows?")) return;
         state.logbook.rows = [];
         saveState();
         renderLogbook();
       });
 
-      /* Logbook CSV helpers */
       function toCSV(rows){
         if(!rows || rows.length===0) return "";
         const headers = Object.keys(rows[0]);
@@ -2420,9 +2428,9 @@ Thanks,`;
       byId("export_log_btn").addEventListener("click", ()=>{ exportLogbookCSV(); });
       byId("email_log_btn").addEventListener("click", ()=>{
         const fname = exportLogbookCSV();
-        const subject = `Logbook Export – ${state.logbook.truck||"TRUCK"} – ${new Date().toISOString().slice(0,10)}`;
+        const subject = `FEM Trucking Logbook Export – ${state.logbook.truck||"TRUCK"} – ${new Date().toISOString().slice(0,10)}`;
         const body =
-`Hi Accounting Team,
+`Hi Cecilia,
 
 I exported the Driver Logbook CSV from the Dispatch to Invoice app.
 
@@ -2430,10 +2438,9 @@ Please attach this file from your Downloads:
 - ${fname}
 
 Thanks,`;
-        openEmailToAccounting(subject, body);
+        openEmailToCecilia(subject, body);
       });
 
-      /* ===================== PHOTOS ===================== */
       const photo_input   = byId("photo_input");
       const photo_tag     = byId("photo_tag");
       const photo_related = byId("photo_related");
@@ -2457,24 +2464,21 @@ Thanks,`;
         grid.innerHTML = "";
         state.photos.forEach(p=>{
           const wrap = document.createElement("div");
-          wrap.style.border="1px solid #e5e7eb";
+          wrap.style.border="1px solid #e0e3e8";
           wrap.style.borderRadius="12px";
           wrap.style.overflow="hidden";
           wrap.style.marginBottom="10px";
           wrap.style.background="#fff";
-
           const img = document.createElement("img");
           img.src = p.dataUrl;
           img.style.width="100%";
           img.style.height="160px";
           img.style.objectFit="cover";
           wrap.appendChild(img);
-
           const meta = document.createElement("div");
           meta.style.padding="10px";
           meta.innerHTML = `<div style="font-weight:900;">${escapeHtml(p.tag||"Untitled")}</div><div class="muted">${escapeHtml(p.related||"")}</div>`;
           wrap.appendChild(meta);
-
           const btn = document.createElement("button");
           btn.className="ghost";
           btn.textContent="Delete";
@@ -2485,7 +2489,6 @@ Thanks,`;
             renderPhotos();
           });
           wrap.appendChild(btn);
-
           grid.appendChild(wrap);
         });
       }
@@ -2494,7 +2497,6 @@ Thanks,`;
         const file = photo_input.files && photo_input.files[0];
         if(!file){ alert("Choose a photo first."); return; }
         const dataUrl = await fileToDataURL(file);
-
         state.photos.unshift({
           id: uid(),
           createdAt: new Date().toISOString(),
@@ -2506,7 +2508,6 @@ Thanks,`;
           dataUrl
         });
         if(state.photos.length>50) state.photos = state.photos.slice(0,50);
-
         saveState();
         photo_input.value="";
         photo_tag.value="";
@@ -2515,7 +2516,7 @@ Thanks,`;
       });
 
       byId("clear_photos_btn").addEventListener("click", ()=>{
-        if(!confirm("Clear all saved photos on this device?")) return;
+        if(!confirm("Clear ALL saved photos on this device?")) return;
         state.photos = [];
         saveState();
         renderPhotos();
@@ -2538,22 +2539,817 @@ Thanks,`;
       byId("export_photos_index_btn").addEventListener("click", ()=>{ exportPhotosIndexCSV(); });
       byId("email_photos_btn").addEventListener("click", ()=>{
         const fname = exportPhotosIndexCSV();
-        const subject = `Tickets/Receipts Index – ${new Date().toISOString().slice(0,10)}`;
+        const subject = `FEM Trucking Tickets/Receipts Index – ${new Date().toISOString().slice(0,10)}`;
         const body =
-`Hi Accounting Team,
+`Hi Cecilia,
 
 I exported the Tickets & Receipts index CSV from the Dispatch to Invoice app.
 
 Please attach this file from your Downloads:
 - ${fname}
 
-(Photos are stored locally on the device in this version.)
+(Photos are stored locally on the device in this v1 build.)
 
 Thanks,`;
-        openEmailToAccounting(subject, body);
+        openEmailToCecilia(subject, body);
       });
 
-      /* ===================== SETTINGS ===================== */
+      const auth_customer                  = byId("auth_customer");
+      const auth_email                     = byId("auth_email");
+      const auth_phone                     = byId("auth_phone");
+      const auth_job_date                  = byId("auth_job_date");
+      const auth_start_location            = byId("auth_start_location");
+      const auth_end_location              = byId("auth_end_location");
+      const auth_payment_terms             = byId("auth_payment_terms");
+      const auth_payment_terms_custom      = byId("auth_payment_terms_custom");
+      const auth_payment_terms_custom_wrap = byId("auth_payment_terms_custom_wrap");
+      const auth_fee_pct                   = byId("auth_fee_pct");
+      const auth_fee_mode                  = byId("auth_fee_mode");
+      const auth_min8                      = byId("auth_min8");
+      const auth_terms                     = byId("auth_terms");
+      const auth_signer                    = byId("auth_signer");
+      const auth_title                     = byId("auth_title");
+      const auth_agree                     = byId("auth_agree");
+      const auth_list                      = byId("auth_list");
+      const clear_auth_form_btn            = byId("clear_auth_form_btn");
+      const auth_price_tbody               = byId("auth_price_tbody");
+      const auth_price_mobile_list         = byId("auth_price_mobile_list");
+      const add_auth_price_btn             = byId("add_auth_price_btn");
+
+      function clearAuthorizationForm(){
+        setInputValue(auth_customer, "");
+        setInputValue(auth_email, "");
+        setInputValue(auth_phone, "");
+        setInputValue(auth_job_date, todayISO());
+        setInputValue(auth_start_location, "");
+        setInputValue(auth_end_location, "");
+        setInputValue(auth_payment_terms, "due_on_receipt");
+        setInputValue(auth_payment_terms_custom, "");
+        setInputValue(auth_fee_pct, "");
+        setInputValue(auth_fee_mode, "subtotal");
+        setInputValue(auth_min8, "off");
+        setInputValue(auth_terms, "By approving this work, customer agrees to the quoted rates, quantities, payment terms, applicable fees, any 8-hour minimum terms when selected, and applicable detention/standby charges, and confirms they are authorized to bind their company.");
+        setInputValue(auth_signer, "");
+        setInputValue(auth_title, "");
+        if(auth_agree) auth_agree.checked = false;
+        state._draftAuthPriceLines = [defaultAuthPriceLine()];
+        renderAuthPriceLines();
+        toggleCustomPaymentTerms();
+      }
+
+      function getAuthorizationDraft(){
+        const rawLines = state._draftAuthPriceLines || [];
+        const priceLines = rawLines.map(pl=>{
+          const basis = String(pl.basis || "loads").trim();
+          let qty = num(pl.qty);
+          let rate = num(pl.rate);
+          if(basis === "flat"){
+            qty = 1;
+          }
+          if(basis === "hours" && String(auth_min8?.value || "off") === "on" && qty > 0 && qty < 8){
+            qty = 8;
+          }
+          return {
+            id: pl.id,
+            basis,
+            qty,
+            rate,
+            total: round2(qty * rate),
+            notes: String(pl.notes || "").trim()
+          };
+        }).filter(pl => pl.qty > 0 || pl.rate > 0 || pl.notes || pl.basis);
+        return {
+          id: uid(),
+          customer: String(auth_customer?.value || "").trim(),
+          email: String(auth_email?.value || "").trim(),
+          phone: String(auth_phone?.value || "").trim(),
+          jobDate: String(auth_job_date?.value || "").trim(),
+          startLocation: String(auth_start_location?.value || "").trim(),
+          endLocation: String(auth_end_location?.value || "").trim(),
+          paymentTerms: String(auth_payment_terms?.value || "due_on_receipt").trim(),
+          paymentTermsCustom: String(auth_payment_terms_custom?.value || "").trim(),
+          feePct: num(auth_fee_pct?.value),
+          feeMode: String(auth_fee_mode?.value || "subtotal").trim(),
+          min8: String(auth_min8?.value || "off").trim(),
+          priceLines,
+          terms: String(auth_terms?.value || "").trim(),
+          signer: String(auth_signer?.value || "").trim(),
+          title: String(auth_title?.value || "").trim(),
+          agree: !!auth_agree?.checked,
+          status: "pending",
+          createdAt: new Date().toISOString()
+        };
+      }
+
+      function getPaymentTermsLabel(a){
+        const map = {
+          due_on_receipt: "Due on receipt",
+          job_complete: "Due upon job completion",
+          net_7: "Net 7",
+          net_15: "Net 15",
+          net_30: "Net 30",
+          weekly_billing: "Weekly billing",
+          custom: a.paymentTermsCustom || "Custom"
+        };
+        return map[a.paymentTerms] || a.paymentTermsCustom || "";
+      }
+
+      function toggleCustomPaymentTerms(){
+        if(!auth_payment_terms_custom_wrap || !auth_payment_terms) return;
+        auth_payment_terms_custom_wrap.style.display =
+          auth_payment_terms.value === "custom" ? "block" : "none";
+      }
+
+      function defaultAuthPriceLine(){
+        return {
+          id: uid(),
+          basis: "loads",
+          qty: "",
+          rate: "",
+          notes: ""
+        };
+      }
+
+      if(!state._draftAuthPriceLines){
+        state._draftAuthPriceLines = [defaultAuthPriceLine()];
+      }
+
+      function renderAuthPriceLines(){
+        if(auth_price_tbody) auth_price_tbody.innerHTML = "";
+        if(auth_price_mobile_list) auth_price_mobile_list.innerHTML = "";
+        if(!state._draftAuthPriceLines || !state._draftAuthPriceLines.length){
+          state._draftAuthPriceLines = [defaultAuthPriceLine()];
+        }
+        (state._draftAuthPriceLines || []).forEach((line, idx)=>{
+          const getComputedQty = ()=>{
+            const basis = String(line.basis || "loads").toLowerCase();
+            let q = num(line.qty);
+            if(basis === "flat") q = 1;
+            if(basis === "hours" && String(auth_min8?.value || "off") === "on" && q > 0 && q < 8){
+              q = 8;
+            }
+            return q;
+          };
+          const getLineTotal = ()=> round2(getComputedQty() * num(line.rate));
+          if(auth_price_tbody){
+            const tr = document.createElement("tr");
+            const tdBasis = document.createElement("td");
+            const sel = document.createElement("select");
+            sel.innerHTML = `
+              <option value="loads">Loads</option>
+              <option value="hours">Hours</option>
+              <option value="hauloffs">Haul Offs</option>
+              <option value="flat">Flat</option>
+            `;
+            sel.value = line.basis || "loads";
+            sel.addEventListener("change", e=>{
+              line.basis = e.target.value;
+              if(String(line.basis || "").toLowerCase() === "flat" && !num(line.qty)) line.qty = "1";
+              renderAuthPriceLines();
+            });
+            tdBasis.appendChild(sel);
+            const tdQty = document.createElement("td");
+            tdQty.className = "right";
+            const inpQty = document.createElement("input");
+            inpQty.type = "number";
+            inpQty.step = (String(line.basis || "").toLowerCase() === "tons") ? "0.01" : "1";
+            inpQty.placeholder = "0";
+            inpQty.value = String(line.basis || "").toLowerCase() === "flat" ? "1" : (line.qty ?? "");
+            inpQty.disabled = String(line.basis || "").toLowerCase() === "flat";
+            inpQty.addEventListener("input", e=>{
+              line.qty = e.target.value;
+              totalBox.textContent = money(getLineTotal());
+              if(mobileTotalBox) mobileTotalBox.textContent = money(getLineTotal());
+            });
+            tdQty.appendChild(inpQty);
+            const tdRate = document.createElement("td");
+            tdRate.className = "right";
+            const inpRate = document.createElement("input");
+            inpRate.type = "number";
+            inpRate.step = "0.01";
+            inpRate.placeholder = "0.00";
+            inpRate.value = line.rate ?? "";
+            inpRate.addEventListener("input", e=>{
+              line.rate = e.target.value;
+              totalBox.textContent = money(getLineTotal());
+              if(mobileTotalBox) mobileTotalBox.textContent = money(getLineTotal());
+            });
+            tdRate.appendChild(inpRate);
+            const tdTotal = document.createElement("td");
+            tdTotal.className = "right";
+            tdTotal.style.fontWeight = "900";
+            const totalBox = document.createElement("div");
+            totalBox.textContent = money(getLineTotal());
+            tdTotal.appendChild(totalBox);
+            const tdNotes = document.createElement("td");
+            const inpNotes = document.createElement("input");
+            inpNotes.type = "text";
+            inpNotes.placeholder = "Optional notes";
+            inpNotes.value = line.notes ?? "";
+            inpNotes.addEventListener("input", e=>{
+              line.notes = e.target.value;
+            });
+            tdNotes.appendChild(inpNotes);
+            const tdAct = document.createElement("td");
+            const del = document.createElement("button");
+            del.type = "button";
+            del.className = "ghost";
+            del.textContent = "Delete";
+            del.disabled = (state._draftAuthPriceLines.length === 1);
+            del.addEventListener("click", ()=>{
+              state._draftAuthPriceLines = state._draftAuthPriceLines.filter(x => x.id !== line.id);
+              if(!state._draftAuthPriceLines.length) state._draftAuthPriceLines = [defaultAuthPriceLine()];
+              renderAuthPriceLines();
+            });
+            tdAct.appendChild(del);
+            tr.appendChild(tdBasis);
+            tr.appendChild(tdQty);
+            tr.appendChild(tdRate);
+            tr.appendChild(tdTotal);
+            tr.appendChild(tdNotes);
+            tr.appendChild(tdAct);
+            auth_price_tbody.appendChild(tr);
+          }
+          let mobileTotalBox = null;
+          if(auth_price_mobile_list){
+            const card = document.createElement("div");
+            card.className = "lineCard";
+            card.innerHTML = `<div class="lineCardHeader"><span class="idx">Price ${idx+1}</span></div>`;
+            const grid = document.createElement("div");
+            grid.className = "lineGrid";
+            const basisWrap = document.createElement("div");
+            basisWrap.className = "full";
+            basisWrap.innerHTML = `<label>Basis</label>`;
+            const basisSel = document.createElement("select");
+            basisSel.innerHTML = `
+              <option value="loads">Loads</option>
+              <option value="hours">Hours</option>
+              <option value="hauloffs">Haul Offs</option>
+              <option value="flat">Flat</option>
+            `;
+            basisSel.value = line.basis || "loads";
+            basisSel.addEventListener("change", e=>{
+              line.basis = e.target.value;
+              if(String(line.basis || "").toLowerCase() === "flat" && !num(line.qty)) line.qty = "1";
+              renderAuthPriceLines();
+            });
+            basisWrap.appendChild(basisSel);
+            const qtyWrap = document.createElement("div");
+            qtyWrap.innerHTML = `<label>Qty</label>`;
+            const qtyInp = document.createElement("input");
+            qtyInp.type = "number";
+            qtyInp.step = (String(line.basis || "").toLowerCase() === "tons") ? "0.01" : "1";
+            qtyInp.placeholder = "0";
+            qtyInp.value = String(line.basis || "").toLowerCase() === "flat" ? "1" : (line.qty ?? "");
+            qtyInp.disabled = String(line.basis || "").toLowerCase() === "flat";
+            qtyInp.addEventListener("input", e=>{
+              line.qty = e.target.value;
+              if(mobileTotalBox) mobileTotalBox.textContent = money(getLineTotal());
+            });
+            qtyWrap.appendChild(qtyInp);
+            const rateWrap = document.createElement("div");
+            rateWrap.innerHTML = `<label>Rate</label>`;
+            const rateInp = document.createElement("input");
+            rateInp.type = "number";
+            rateInp.step = "0.01";
+            rateInp.placeholder = "0.00";
+            rateInp.value = line.rate ?? "";
+            rateInp.addEventListener("input", e=>{
+              line.rate = e.target.value;
+              if(mobileTotalBox) mobileTotalBox.textContent = money(getLineTotal());
+            });
+            rateWrap.appendChild(rateInp);
+            const totalWrap = document.createElement("div");
+            totalWrap.innerHTML = `<label>Total</label>`;
+            mobileTotalBox = document.createElement("div");
+            mobileTotalBox.style.padding = "12px";
+            mobileTotalBox.style.border = "1px solid #d1d5db";
+            mobileTotalBox.style.borderRadius = "10px";
+            mobileTotalBox.style.background = "#fff";
+            mobileTotalBox.style.fontWeight = "900";
+            mobileTotalBox.textContent = money(getLineTotal());
+            totalWrap.appendChild(mobileTotalBox);
+            const notesWrap = document.createElement("div");
+            notesWrap.className = "full";
+            notesWrap.innerHTML = `<label>Description / Notes</label>`;
+            const notesInp = document.createElement("input");
+            notesInp.type = "text";
+            notesInp.placeholder = "Optional notes";
+            notesInp.value = line.notes ?? "";
+            notesInp.addEventListener("input", e=>{
+              line.notes = e.target.value;
+            });
+            notesWrap.appendChild(notesInp);
+            const actWrap = document.createElement("div");
+            actWrap.className = "full";
+            const delBtn = document.createElement("button");
+            delBtn.type = "button";
+            delBtn.className = "ghost";
+            delBtn.textContent = "Delete";
+            delBtn.disabled = (state._draftAuthPriceLines.length === 1);
+            delBtn.addEventListener("click", ()=>{
+              state._draftAuthPriceLines = state._draftAuthPriceLines.filter(x => x.id !== line.id);
+              if(!state._draftAuthPriceLines.length) state._draftAuthPriceLines = [defaultAuthPriceLine()];
+              renderAuthPriceLines();
+            });
+            actWrap.appendChild(delBtn);
+            grid.appendChild(basisWrap);
+            grid.appendChild(qtyWrap);
+            grid.appendChild(rateWrap);
+            grid.appendChild(totalWrap);
+            grid.appendChild(notesWrap);
+            grid.appendChild(actWrap);
+            card.appendChild(grid);
+            auth_price_mobile_list.appendChild(card);
+          }
+        });
+      }
+
+      function renderAuthorizations(){
+        if(!auth_list) return;
+        if(!state.authorizations.length){
+          auth_list.className = "muted";
+          auth_list.textContent = "No authorizations saved yet.";
+          return;
+        }
+        auth_list.className = "";
+        auth_list.innerHTML = "";
+        state.authorizations.forEach((a, idx)=>{
+          const wrap = document.createElement("div");
+          wrap.style.border = "1px solid #e0e3e8";
+          wrap.style.borderRadius = "12px";
+          wrap.style.padding = "12px";
+          wrap.style.marginBottom = "10px";
+          wrap.style.background = "#fff";
+          const statusColors = { pending: "#d97706", approved: "#059669", completed: "#6b7280" };
+          const statusLabels = { pending: "Pending", approved: "Approved", completed: "Completed" };
+          const curStatus = a.status || "pending";
+          const statusColor = statusColors[curStatus] || "#d97706";
+
+          wrap.innerHTML = `
+            <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+              <div style="font-weight:900;">${escapeHtml(a.customer || "Unknown Customer")}</div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:${statusColor}15;color:${statusColor};border:1px solid ${statusColor}30;">
+                  <span style="width:7px;height:7px;border-radius:50%;background:${statusColor};display:inline-block;"></span>
+                  ${escapeHtml(statusLabels[curStatus] || "Pending")}
+                </span>
+                <span class="muted">#${idx + 1}</span>
+              </div>
+            </div>
+            <div class="muted" style="margin-top:4px;">${escapeHtml(a.jobDate || "")}</div>
+            <div style="margin-top:8px;"><strong>Email:</strong> ${escapeHtml(a.email || "—")}</div>
+            <div><strong>Phone:</strong> ${escapeHtml(a.phone || "—")}</div>
+            <div><strong>Start:</strong> ${escapeHtml(a.startLocation || "—")}</div>
+            <div><strong>End:</strong> ${escapeHtml(a.endLocation || "—")}</div>
+            <div><strong>Payment Terms:</strong> ${escapeHtml(getPaymentTermsLabel(a) || "—")}</div>
+            <div><strong>Pricing Lines:</strong> ${(a.priceLines || []).map(pl => `${escapeHtml(({
+              loads:"Loads",
+              hours:"Hours",
+              tons:"Tons",
+              hauloffs:"Haul Offs",
+              flat:"Flat"
+            }[String(pl.basis || "").toLowerCase()] || pl.basis))} ${pl.qty} × ${money(pl.rate)} = ${money(pl.total)}`).join(" | ") || "0"}</div>
+            <div><strong>% Fee:</strong> ${num(a.feePct).toFixed(2)}%</div>
+            <div><strong>Fee Applies To:</strong> ${escapeHtml(a.feeMode || "subtotal")}</div>
+            <div><strong>8-hour Minimum:</strong> ${a.min8 === "on" ? "Yes" : "No"}</div>
+            <div><strong>Authorized By:</strong> ${escapeHtml(a.signer || "—")} ${a.title ? "(" + escapeHtml(a.title) + ")" : ""}</div>
+            <div><strong>Ready to Send:</strong> ${a.agree ? "Yes" : "No"}</div>
+            <div class="muted" style="margin-top:8px;">Saved: ${escapeHtml(a.createdAt || "")}</div>
+          `;
+          const btnRow = document.createElement("div");
+          btnRow.className = "actions";
+          btnRow.style.marginTop = "10px";
+          const emailBtn = document.createElement("button");
+          emailBtn.textContent = "Send Approval Email";
+          emailBtn.addEventListener("click", ()=>{
+            openAuthorizationEmail(a);
+          });
+          const pdfBtn = document.createElement("button");
+          pdfBtn.textContent = "Download PDF";
+          pdfBtn.addEventListener("click", ()=>{
+            generateAuthorizationPDF(a);
+          });
+
+          const createInvBtn = document.createElement("button");
+          createInvBtn.textContent = "Create Invoice";
+          createInvBtn.addEventListener("click", ()=>{
+            createInvoiceFromAuthorization(a);
+          });
+          const delBtn = document.createElement("button");
+          delBtn.className = "ghost";
+          delBtn.textContent = "Delete";
+          delBtn.addEventListener("click", ()=>{
+            state.authorizations = state.authorizations.filter(x => x.id !== a.id);
+            saveState();
+            renderAuthorizations();
+          });
+          const statusSel = document.createElement("select");
+          statusSel.style.padding = "8px 12px";
+          statusSel.style.borderRadius = "10px";
+          statusSel.style.border = "1px solid #e0e3e8";
+          statusSel.style.fontWeight = "700";
+          statusSel.style.fontSize = "13px";
+          statusSel.innerHTML = `
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="completed">Completed</option>
+          `;
+          statusSel.value = a.status || "pending";
+          statusSel.addEventListener("change", ()=>{
+            a.status = statusSel.value;
+            saveState();
+            renderAuthorizations();
+          });
+
+          btnRow.appendChild(statusSel);
+          btnRow.appendChild(emailBtn);
+          btnRow.appendChild(pdfBtn);
+          btnRow.appendChild(createInvBtn);
+          btnRow.appendChild(delBtn);
+          wrap.appendChild(btnRow);
+          auth_list.appendChild(wrap);
+        });
+      }
+
+      function openAuthorizationEmail(a){
+        if(!a.email){
+          alert("This authorization does not have an email address.");
+          return;
+        }
+
+        // Time-based greeting
+        const hour = new Date().getHours();
+        let greeting = "Good evening";
+        if(hour < 12) greeting = "Good morning";
+        else if(hour < 17) greeting = "Good afternoon";
+
+        const contactName = a.customer || "there";
+
+        const subject = `FEM Trucking Work Authorization – ${a.customer || "Job Approval"} – ${a.jobDate || ""}`;
+
+        const body =
+`${greeting} ${contactName},
+
+Please review and confirm this work authorization. The full work authorization details are attached as a PDF.
+
+WORK AUTHORIZATION TERMS
+${a.terms || "By approving this work, customer agrees to the quoted rates, quantities, payment terms, applicable fees, any 8-hour minimum terms when selected, and applicable detention/standby charges, and confirms they are authorized to bind their company."}
+
+AUTHORIZED PERSON
+Name: ${a.signer || ""}
+Title / Role: ${a.title || ""}
+
+Please reply with the following statement:
+
+"I approve this work at the quoted rates, quantities, fees, and terms and confirm I am authorized to approve on behalf of my company."
+
+Thank you,
+FEM Trucking
+San Antonio & Surrounding Areas`;
+
+        // Generate PDF as a File object for sharing
+        const pdfFile = generateAuthorizationPDF(Object.assign({}, a, { _returnFile: true }));
+
+        // Try Web Share API (works on iPhone, Android, modern browsers)
+        if(navigator.canShare && navigator.canShare({ files: [pdfFile] })){
+          navigator.share({
+            title: subject,
+            text: body,
+            files: [pdfFile]
+          }).catch(function(err){
+            // User cancelled or share failed — fall back to mailto + download
+            if(err.name !== 'AbortError'){
+              fallbackMailto();
+            }
+          });
+        } else {
+          // Desktop or older browser — fall back to mailto + PDF download
+          fallbackMailto();
+        }
+
+        function fallbackMailto(){
+          // Download the PDF separately
+          generateAuthorizationPDF(a);
+          // Open email draft
+          const url = `mailto:${encodeURIComponent(a.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+          window.location.href = url;
+        }
+      }
+
+      function generateAuthorizationPDF(a){
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'pt', 'letter');
+        const pageW = doc.internal.pageSize.getWidth();
+        const margin = 50;
+        const contentW = pageW - margin * 2;
+        let y = 50;
+
+        // Colors
+        const darkNavy = [27, 27, 47];
+        const femRed = [192, 57, 43];
+        const black = [17, 17, 17];
+        const gray = [107, 114, 128];
+        const white = [255, 255, 255];
+
+        // Helper
+        function addText(text, x, yPos, opts={}){
+          doc.setFontSize(opts.size || 10);
+          doc.setFont('helvetica', opts.style || 'normal');
+          doc.setTextColor(...(opts.color || black));
+          doc.text(String(text || ''), x, yPos, opts.align ? { align: opts.align } : undefined);
+        }
+
+        function checkPage(needed){
+          if(y + needed > doc.internal.pageSize.getHeight() - 60){
+            doc.addPage();
+            y = 50;
+          }
+        }
+
+        // ── HEADER BAR ──
+        doc.setFillColor(...darkNavy);
+        doc.rect(0, 0, pageW, 80, 'F');
+        doc.setFillColor(...femRed);
+        doc.rect(0, 80, pageW, 4, 'F');
+
+        addText('FEM Trucking', margin, 40, { size: 22, style: 'bold', color: white });
+        addText('San Antonio & Surrounding Areas', margin, 58, { size: 10, color: [200, 200, 200] });
+
+        addText('WORK AUTHORIZATION', pageW - margin, 45, { size: 14, style: 'bold', color: white, align: 'right' });
+
+        y = 110;
+
+        // ── CUSTOMER INFO ──
+        doc.setFillColor(240, 242, 245);
+        doc.roundedRect(margin, y, contentW, 100, 4, 4, 'F');
+
+        const col1 = margin + 12;
+        const col2 = margin + contentW / 2 + 12;
+
+        addText('Customer / Contractor', col1, y + 18, { size: 8, color: gray });
+        addText(a.customer || '—', col1, y + 32, { size: 11, style: 'bold' });
+
+        addText('Email', col2, y + 18, { size: 8, color: gray });
+        addText(a.email || '—', col2, y + 32, { size: 11 });
+
+        addText('Phone', col1, y + 52, { size: 8, color: gray });
+        addText(a.phone || '—', col1, y + 66, { size: 11 });
+
+        addText('Job Date', col2, y + 52, { size: 8, color: gray });
+        addText(a.jobDate || '—', col2, y + 66, { size: 11 });
+
+        addText('Route', col1, y + 86, { size: 8, color: gray });
+        addText((a.startLocation || '—') + '  →  ' + (a.endLocation || '—'), col1, y + 100, { size: 11 });
+
+        y += 120;
+
+        // ── PAYMENT TERMS ──
+        const payLabel = (function(){
+          const map = { due_on_receipt:'Due on receipt', job_complete:'Due upon job completion', net_7:'Net 7', net_15:'Net 15', net_30:'Net 30', weekly_billing:'Weekly billing', custom: a.paymentTermsCustom || 'Custom' };
+          return map[a.paymentTerms] || a.paymentTermsCustom || '';
+        })();
+
+        addText('Payment Terms: ', margin, y, { size: 10, style: 'bold' });
+        addText(payLabel, margin + 95, y, { size: 10 });
+        y += 14;
+        addText('8-Hour Minimum: ', margin, y, { size: 10, style: 'bold' });
+        addText(a.min8 === 'on' ? 'Yes' : 'No', margin + 100, y, { size: 10 });
+        y += 24;
+
+        // ── PRICING TABLE ──
+        checkPage(60);
+        addText('PRICING', margin, y, { size: 12, style: 'bold', color: femRed });
+        y += 16;
+
+        // Table header
+        const cols = [margin, margin + 90, margin + 150, margin + 230, margin + 310];
+        const colLabels = ['Basis', 'Qty', 'Rate', 'Line Total', 'Notes'];
+
+        doc.setFillColor(...darkNavy);
+        doc.rect(margin, y, contentW, 22, 'F');
+        colLabels.forEach((lbl, i) => {
+          addText(lbl, cols[i] + 6, y + 15, { size: 9, style: 'bold', color: white });
+        });
+        y += 22;
+
+        const basisLabels = { loads:'Loads', hours:'Hours', tons:'Tons', hauloffs:'Haul Offs', flat:'Flat' };
+
+        (a.priceLines || []).forEach((pl, i) => {
+          checkPage(24);
+          if(i % 2 === 0){
+            doc.setFillColor(248, 249, 250);
+            doc.rect(margin, y, contentW, 22, 'F');
+          }
+          addText(basisLabels[String(pl.basis||'').toLowerCase()] || pl.basis, cols[0] + 6, y + 15, { size: 9 });
+          addText(String(pl.qty), cols[1] + 6, y + 15, { size: 9 });
+          addText(money(pl.rate), cols[2] + 6, y + 15, { size: 9 });
+          addText(money(pl.total), cols[3] + 6, y + 15, { size: 9, style: 'bold' });
+          addText(pl.notes || '', cols[4] + 6, y + 15, { size: 8, color: gray });
+          y += 22;
+        });
+
+        // Totals
+        y += 8;
+        checkPage(80);
+
+        const subtotalAuth = round2((a.priceLines || []).reduce((sum, pl) => sum + num(pl.total), 0));
+        let feeBaseAuth = subtotalAuth;
+        if((a.feeMode || 'subtotal') === 'hours_only'){
+          feeBaseAuth = round2((a.priceLines || []).filter(pl => String(pl.basis||'').toLowerCase() === 'hours').reduce((sum, pl) => sum + num(pl.total), 0));
+        } else if((a.feeMode || 'subtotal') === 'loads_only'){
+          feeBaseAuth = round2((a.priceLines || []).filter(pl => String(pl.basis||'').toLowerCase() !== 'hours').reduce((sum, pl) => sum + num(pl.total), 0));
+        }
+        const feeAmountAuth = round2(feeBaseAuth * (num(a.feePct) / 100));
+        const totalAuth = round2(subtotalAuth + feeAmountAuth);
+
+        doc.setDrawColor(200, 200, 200);
+        doc.line(margin, y, margin + contentW, y);
+        y += 16;
+
+        const rightX = margin + contentW - 6;
+        addText('Subtotal:', rightX - 120, y, { size: 10, style: 'bold' });
+        addText(money(subtotalAuth), rightX, y, { size: 10, align: 'right' });
+        y += 16;
+
+        if(num(a.feePct) > 0){
+          const feeModeLabel = { subtotal:'Subtotal', hours_only:'Hours Lines Only', loads_only:'Non-Hours Lines Only' }[a.feeMode||'subtotal'] || 'Subtotal';
+          addText('Fee (' + num(a.feePct).toFixed(2) + '% of ' + feeModeLabel + '):', rightX - 120, y, { size: 10 });
+          addText(money(feeAmountAuth), rightX, y, { size: 10, align: 'right' });
+          y += 16;
+        }
+
+        doc.setFillColor(...femRed);
+        doc.roundedRect(rightX - 200, y - 4, 206, 24, 3, 3, 'F');
+        addText('TOTAL ESTIMATED:', rightX - 190, y + 12, { size: 11, style: 'bold', color: white });
+        addText(money(totalAuth), rightX, y + 12, { size: 12, style: 'bold', color: white, align: 'right' });
+        y += 40;
+
+        // ── TERMS ──
+        checkPage(80);
+        addText('TERMS & CONDITIONS', margin, y, { size: 12, style: 'bold', color: femRed });
+        y += 16;
+
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...black);
+        const termsLines = doc.splitTextToSize(a.terms || '', contentW);
+        termsLines.forEach(line => {
+          checkPage(14);
+          doc.text(line, margin, y);
+          y += 13;
+        });
+        y += 12;
+
+        // ── AUTHORIZATION BLOCK ──
+        checkPage(100);
+        doc.setFillColor(240, 242, 245);
+        doc.roundedRect(margin, y, contentW, 80, 4, 4, 'F');
+
+        addText('AUTHORIZED BY', margin + 12, y + 18, { size: 8, color: gray });
+        addText(a.signer || '—', margin + 12, y + 34, { size: 12, style: 'bold' });
+        addText(a.title || '', margin + 12, y + 50, { size: 10, color: gray });
+
+        // Signature line
+        doc.setDrawColor(150, 150, 150);
+        doc.line(margin + contentW / 2 + 20, y + 55, margin + contentW - 12, y + 55);
+        addText('Signature', margin + contentW / 2 + 20, y + 70, { size: 8, color: gray });
+
+        addText('Date: _______________', margin + 12, y + 70, { size: 9, color: gray });
+
+        y += 96;
+
+        // ── FOOTER ──
+        checkPage(30);
+        doc.setDrawColor(...femRed);
+        doc.setLineWidth(1);
+        doc.line(margin, y, margin + contentW, y);
+        y += 14;
+        addText('Generated by FEM Trucking Operations App', margin, y, { size: 8, color: gray });
+        addText(new Date().toLocaleString(), pageW - margin, y, { size: 8, color: gray, align: 'right' });
+
+        // Build filename
+        const fname = 'FEM_WorkAuth_' + (a.customer || 'Unknown').replace(/[^a-zA-Z0-9]/g, '_') + '_' + (a.jobDate || '').replace(/-/g, '') + '.pdf';
+
+        // If returnFile flag is set, return the File object instead of saving
+        if(a._returnFile){
+          const blob = doc.output('blob');
+          return new File([blob], fname, { type: 'application/pdf' });
+        }
+
+        // Otherwise just download
+        doc.save(fname);
+      }
+
+      byId("save_auth_btn").addEventListener("click", ()=>{
+        const a = getAuthorizationDraft();
+        if(!a.customer){ alert("Customer / Contractor is required."); return; }
+        if(!a.email){ alert("Contact Email is required."); return; }
+        if(!a.jobDate){ alert("Job Date is required."); return; }
+        if(!a.startLocation){ alert("Start Location is required."); return; }
+        if(!a.endLocation){ alert("End Location is required."); return; }
+        if(!a.priceLines || !a.priceLines.length){ alert("Add at least one pricing line."); return; }
+        if(a.priceLines.some(pl => num(pl.qty) <= 0)){ alert("Each pricing line must have a quantity greater than 0."); return; }
+        if(a.priceLines.some(pl => num(pl.rate) <= 0)){ alert("Each pricing line must have a rate greater than 0."); return; }
+        if(a.paymentTerms === "custom" && !a.paymentTermsCustom){ alert("Enter custom payment terms."); return; }
+        if(!a.signer){ alert("Authorized Person Name is required."); return; }
+        if(!a.agree){ alert("Check the review box before saving."); return; }
+        state.authorizations.unshift(a);
+        saveState();
+        renderAuthorizations();
+        alert("Authorization saved.");
+      });
+
+      byId("email_auth_btn").addEventListener("click", ()=>{
+        const a = getAuthorizationDraft();
+        if(!a.customer){ alert("Customer / Contractor is required."); return; }
+        if(!a.email){ alert("Contact Email is required."); return; }
+        if(!a.jobDate){ alert("Job Date is required."); return; }
+        openAuthorizationEmail(a);
+      });
+
+      clear_auth_form_btn.addEventListener("click", ()=>{
+        clearAuthorizationForm();
+      });
+
+      if(auth_payment_terms){
+        auth_payment_terms.addEventListener("change", toggleCustomPaymentTerms);
+      }
+
+      if(auth_min8){
+        auth_min8.addEventListener("change", ()=>{
+          renderAuthPriceLines();
+        });
+      }
+
+      if(add_auth_price_btn){
+        add_auth_price_btn.addEventListener("click", ()=>{
+          state._draftAuthPriceLines.push(defaultAuthPriceLine());
+          renderAuthPriceLines();
+        });
+      }
+
+      function createInvoiceFromAuthorization(a){
+        const routeText = `${a.startLocation || ""} → ${a.endLocation || ""}`.trim();
+        state.invoice.defaultContractor = a.customer || "";
+        state.invoice.defaultRoute = routeText;
+        state.invoice.week = a.jobDate ? `Authorized job ${a.jobDate}` : state.invoice.week;
+        state.invoice.feePct = String(a.feePct ?? "");
+        state.invoice.feeMode = a.feeMode || "subtotal";
+        state.invoice.min8 = a.min8 || "off";
+        const linesToAdd = (a.priceLines || []).map(pl => {
+          const line = {
+            id: uid(),
+            date: a.jobDate || todayISO(),
+            ticket: "",
+            contractor: a.customer || "",
+            route: routeText,
+            basis: pl.basis || "loads",
+            hauloffs: "",
+            loads: "",
+            tons: "",
+            hours: "",
+            rate: String(pl.rate ?? "")
+          };
+          if(line.basis === "loads") line.loads = String(pl.qty ?? "");
+          if(line.basis === "hours") line.hours = String(pl.qty ?? "");
+          if(line.basis === "tons") line.tons = String(pl.qty ?? "");
+          if(line.basis === "hauloffs") line.hauloffs = String(pl.qty ?? "");
+          return line;
+        });
+        if(state.invoice.lines.length > 0){
+          const choice = confirm("You have " + state.invoice.lines.length + " existing invoice lines.\n\nOK = Replace with authorization lines\nCancel = Keep existing and add authorization lines");
+          if(choice){
+            state.invoice.lines = linesToAdd;
+          } else {
+            state.invoice.lines = state.invoice.lines.concat(linesToAdd);
+          }
+        } else {
+          state.invoice.lines = linesToAdd;
+        }
+        saveState();
+        setInputValue(inv_default_contractor, state.invoice.defaultContractor);
+        setInputValue(inv_default_route, state.invoice.defaultRoute);
+        setInputValue(inv_week, state.invoice.week);
+        setInputValue(inv_fee_pct, state.invoice.feePct);
+        setInputValue(inv_fee_mode, state.invoice.feeMode);
+        setInputValue(inv_min8, state.invoice.min8);
+
+        // Force select elements to reflect new values (some browsers need this)
+        if(inv_fee_mode) inv_fee_mode.value = state.invoice.feeMode || "subtotal";
+        if(inv_min8) inv_min8.value = state.invoice.min8 || "off";
+
+        // Sync driver/truck from auth to invoice+logbook
+        if(a.customer){
+          prevDefaultContractor = state.invoice.defaultContractor;
+          prevDefaultRoute = state.invoice.defaultRoute;
+        }
+
+        saveState();
+        renderInvoice();
+        setActiveTab("invoice");
+      }
+
       byId("set_company").addEventListener("input", e=>{
         state.settings.company = e.target.value;
         saveState();
@@ -2563,14 +3359,17 @@ Thanks,`;
         saveState();
         renderInvoice();
       });
+      byId("set_email").addEventListener("input", e=>{
+        state.settings.email = e.target.value;
+        saveState();
+      });
 
       byId("reset_all_btn").addEventListener("click", ()=>{
-        if(!confirm("Reset all app data? This cannot be undone.")) return;
+        if(!confirm("RESET all app data? This cannot be undone.")) return;
         localStorage.removeItem(STORAGE_KEY);
         location.reload();
       });
 
-      /* ===================== HYDRATE + INIT ===================== */
       function hydrateUI(){
         setInputValue(inv_driver, state.invoice.driver || "");
         setInputValue(inv_truck,  state.invoice.truck  || "");
@@ -2581,30 +3380,32 @@ Thanks,`;
         setInputValue(inv_fee_mode,           state.invoice.feeMode           || "subtotal");
         setInputValue(inv_hours_override,     state.invoice.hoursOverride     || "");
         setInputValue(inv_min8,               state.invoice.min8              || "off");
-
-        setInputValue(byId("set_company"),  state.settings.company  || "Demo Company");
+        setInputValue(inv_number,             state.invoice.invoiceNumber     || "");
+        setInputValue(inv_payment_status,     state.invoice.paymentStatus     || "draft");
+        setInputValue(byId("set_company"),  state.settings.company  || "FEM Trucking");
         setInputValue(byId("set_currency"), state.settings.currency || "USD");
-
+        setInputValue(byId("set_email"), state.settings.email || "cecilia@femtrucking.com");
         syncHeaders("invoice");
         setInputValue(log_notes, state.logbook.notes || "");
-
         prevDefaultContractor = state.invoice.defaultContractor || "";
         prevDefaultRoute      = state.invoice.defaultRoute || "";
-
+        if(auth_job_date && !auth_job_date.value) setInputValue(auth_job_date, todayISO());
+        if(auth_fee_mode && !auth_fee_mode.value) setInputValue(auth_fee_mode, "subtotal");
+        if(auth_min8 && !auth_min8.value) setInputValue(auth_min8, "off");
+        if(!state._draftAuthPriceLines || !state._draftAuthPriceLines.length){
+          state._draftAuthPriceLines = [defaultAuthPriceLine()];
+        }
+        toggleCustomPaymentTerms();
+        renderAuthPriceLines();
         renderInvoice();
+        renderAuthorizations();
         renderLogbook();
         renderPhotos();
+        setActiveTab("authorizations");
       }
 
       hydrateUI();
       saveState();
-
-      // Seed lines if empty (first run only)
-      if(state.invoice.lines.length === 0){
-        state.invoice.lines.push(defaultNewLine());
-        saveState();
-        renderInvoice();
-      }
     </script>
   </body>
 </html>
